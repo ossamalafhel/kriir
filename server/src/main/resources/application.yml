@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: @project.name@
+  jackson:
+    default-property-inclusion: non_absent
+    serialization:
+      write_dates_as_timestamps: false
+    deserialization:
+      adjust_dates_to_context_time_zone: false
+      fail_on_unknown_properties: false
+  mvc:
+    static-path-pattern: /static/**
+    throw-exception-if-no-handler-found: true
+  datasource:
+    continue-on-error: true
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      data-source-properties:
+        socketTimeout: 120
+      leak-detection-threshold: 60000
+    username: rci
+    password: rci
+    url: jdbc:postgresql://localhost:5432/postgres
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+        jdbc:
+          driver-class-name: org.postgresql.Driver
+          batch_size: 100
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        ddl_auto: none
+
+info:
+  service: ${spring.application.name}
+  runId: ${random.uuid}
+  dependencies:
+
+management:
+  context-path: /management
+
+endpoints:
+  health:
+    mapping.UNKNOWN: OK
+    mapping.DOWN: OK
+    mapping.OUT_OF_SERVICE: OK
+  info:
+    sensitive: true
+
+server:
+  compression:
+    enabled: false
+    mime-types: application/json
+
+
+
