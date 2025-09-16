@@ -1,939 +1,1810 @@
-# KRIIR - Cyber Risk Open Platform (Ransomware Focus) v2.0
+# KRIIR - Complete Technical Specification
 
 ## Executive Summary
 
-**Product Name:** KRIIR - Cyber Risk Open Platform (Ransomware Focused)  
-**Vision:** The world's most advanced ransomware prediction and prevention platform  
-**Mission:** Democratize enterprise-grade ransomware defense through open-source AI  
-**Tagline:** "Predict. Prevent. Protect. From Ransomware."
+**Product Name:** KRIIR - Open Source Ransomware Detection Platform  
+**Vision:** Advanced behavioral detection and response for ransomware threats  
+**Mission:** Democratize enterprise-grade ransomware detection through open source technology  
+**Core Value:** Real-time ransomware detection with automated response capabilities
 
 ---
 
-## 1. Ransomware Focus Overview
+## 1. Product Definition
 
-### 1.1 Product Definition
+### 1.1 Problem Statement
 
-KRIIR v2.0 is specifically engineered to combat the ransomware epidemic through predictive AI, real-time monitoring, and automated prevention systems. Unlike general threat intelligence platforms, KRIIR focuses exclusively on ransomware attack patterns, victim profiling, and attack path prediction.
+Ransomware attacks cost organizations $20+ billion annually, with average recovery times of 287 days. Current solutions are either too expensive for SMBs ($50K-$500K/year) or lack the behavioral sophistication to detect modern ransomware variants before significant damage occurs.
 
-### 1.2 Market Context
+### 1.2 Solution Overview
 
-- **Ransomware Damage:** $20B+ annually in global damages
-- **Attack Frequency:** Every 11 seconds globally
-- **Success Rate:** 70%+ of attacks achieve initial compromise
-- **Average Downtime:** 23 days per successful attack
-- **Recovery Cost:** $4.54M average cost per incident
+KRIIR provides real-time behavioral analysis specifically tuned for ransomware attack patterns, combining rule-based detection with machine learning to achieve high accuracy while minimizing false positives. The platform focuses on detecting ransomware during execution rather than attempting prediction.
 
-### 1.3 Unique Value Propositions
+### 1.3 Target Market
 
-**For Security Teams:**
-- Predict ransomware attacks 48-72 hours before execution
-- Identify attack paths and vulnerable entry points
-- Automated kill-chain interruption
-- Real-time attack progression monitoring
-
-**For Insurance Companies:**
-- Precise ransomware risk scoring for underwriting
-- Predictive loss modeling for ransomware claims
-- Real-time portfolio exposure monitoring
-- Claims validation through attack reconstruction
-
-**For Enterprises:**
-- Proactive ransomware defense posture
-- Automated backup triggering before attacks
-- Supply chain ransomware risk assessment
-- Board-level ransomware risk reporting
+**Primary:** Small to medium businesses (100-5000 employees)
+**Secondary:** Security researchers and open source contributors  
+**Tertiary:** Enterprises seeking transparent, auditable security solutions
 
 ---
 
-## 2. Ransomware-Specific Technical Architecture
+## 2. Technical Architecture
 
-### 2.1 Ransomware Attack Prediction Engine
+### 2.1 System Overview
 
-```python
-class RansomwareAttackPredictor:
-    def __init__(self):
-        self.victim_profiler = VictimProfiler()
-        self.attack_path_analyzer = AttackPathAnalyzer()
-        self.temporal_predictor = RansomwareTemporalModel()
-        self.adversary_tracker = ThreatActorTracker()
-        
-    def predict_ransomware_risk(self, organization_profile):
-        """
-        Predict ransomware attack likelihood and timeline
-        Returns: RansomwareRiskAssessment
-        """
-        victim_score = self.victim_profiler.assess_target_attractiveness(
-            organization_profile
-        )
-        
-        attack_paths = self.attack_path_analyzer.identify_vulnerable_paths(
-            organization_profile.infrastructure
-        )
-        
-        temporal_risk = self.temporal_predictor.predict_attack_window(
-            victim_score, attack_paths
-        )
-        
-        return RansomwareRiskAssessment(
-            risk_score=victim_score,
-            attack_probability=temporal_risk.probability,
-            predicted_timeframe=temporal_risk.window,
-            likely_attack_paths=attack_paths,
-            recommended_defenses=self.generate_defense_recommendations()
-        )
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   KRIIR Agent   │    │ Quarkus Server  │    │ Python ML API   │
+│   (Go Binary)   │◄──►│  (Event Core)   │◄──►│ (Detection AI)  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+    ┌────▼────┐            ┌─────▼─────┐         ┌──────▼──────┐
+    │ OS APIs │            │PostgreSQL │         │  ML Models  │
+    │Monitor  │            │   Redis   │         │ scikit-learn│
+    └─────────┘            └───────────┘         └─────────────┘
 ```
 
-### 2.2 Ransomware Kill-Chain Analysis
+### 2.2 Component Responsibilities
 
-#### Ransomware Attack Kill-Chain Flow
+**Agent (Go):**
+- File system monitoring via native APIs
+- Process creation/termination tracking
+- Network connection monitoring
+- Event batching and secure transmission
 
-```mermaid
-graph TD
-    A[🔍 Reconnaissance] --> B[🚪 Initial Access]
-    B --> C[⚡ Execution]
-    C --> D[📌 Persistence]
-    D --> E[⬆️ Privilege Escalation]
-    E --> F[🛡️ Defense Evasion]
-    F --> G[🔑 Credential Access]
-    G --> H[📋 Discovery]
-    H --> I[↔️ Lateral Movement]
-    I --> J[📦 Collection]
-    J --> K[🌐 Command & Control]
-    K --> L[📤 Exfiltration]
-    L --> M[🔒 Encryption]
-    M --> N[💰 Ransom Demand]
+**Quarkus Core (Java):**
+- High-performance event ingestion
+- Rule-based behavioral analysis
+- Database persistence
+- Alert management and routing
+
+**ML Service (Python):**
+- Advanced behavioral classification
+- Model training and updates
+- Feature engineering
+- Anomaly detection
+
+---
+
+## 3. Agent Implementation
+
+### 3.1 Agent Architecture
+
+```go
+package main
+
+import (
+    "context"
+    "time"
+    "crypto/tls"
+    "encoding/json"
+)
+
+type KriirAgent struct {
+    config          *AgentConfig
+    monitors        []Monitor
+    eventProcessor  *EventProcessor
+    serverComm      *ServerCommunication
+    ctx             context.Context
+    cancel          context.CancelFunc
+}
+
+type SecurityEvent struct {
+    ID              string                 `json:"id"`
+    AgentID         string                 `json:"agent_id"`
+    Timestamp       time.Time              `json:"timestamp"`
+    EventType       string                 `json:"event_type"`
+    ProcessID       int                    `json:"process_id,omitempty"`
+    ProcessName     string                 `json:"process_name,omitempty"`
+    ProcessPath     string                 `json:"process_path,omitempty"`
+    ParentPID       int                    `json:"parent_pid,omitempty"`
+    FilePath        string                 `json:"file_path,omitempty"`
+    FileAction      string                 `json:"file_action,omitempty"`
+    NetworkDest     string                 `json:"network_dest,omitempty"`
+    NetworkPort     int                    `json:"network_port,omitempty"`
+    UserContext     string                 `json:"user_context,omitempty"`
+    CommandLine     string                 `json:"command_line,omitempty"`
+    Metadata        map[string]interface{} `json:"metadata,omitempty"`
+}
+
+func (agent *KriirAgent) Start() error {
+    agent.ctx, agent.cancel = context.WithCancel(context.Background())
     
-    style A fill:#e8f5e8,stroke:#388e3c
-    style B fill:#fff3e0,stroke:#f57c00
-    style C fill:#fce4ec,stroke:#c2185b
-    style M fill:#ffebee,stroke:#d32f2f,stroke-width:3px
-    style N fill:#ff1744,color:#ffffff,stroke:#b71c1c,stroke-width:3px
+    // Initialize monitoring components
+    for _, monitor := range agent.monitors {
+        if err := monitor.Start(agent.ctx); err != nil {
+            return fmt.Errorf("failed to start monitor: %w", err)
+        }
+    }
     
-    A -.->|"🛡️ KRIIR Detection"| O[Kill-Chain Monitor]
-    B -.->|"🛡️ KRIIR Detection"| O
-    C -.->|"🛡️ KRIIR Detection"| O
-    G -.->|"🛡️ KRIIR Detection"| O
-    I -.->|"🛡️ KRIIR Detection"| O
-    L -.->|"🛡️ KRIIR Detection"| O
+    // Start event processing
+    go agent.eventProcessor.Run(agent.ctx)
     
-    O --> P[🚨 Automated Response]
-    P --> Q[💾 Emergency Backup]
-    P --> R[🔐 Network Isolation]
-    P --> S[📢 Critical Alerts]
+    // Start server communication
+    go agent.serverComm.Run(agent.ctx)
     
-    style O fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    style P fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    return nil
+}
+
+type FileSystemMonitor struct {
+    eventChan chan<- SecurityEvent
+    agentID   string
+}
+
+func (fsm *FileSystemMonitor) Start(ctx context.Context) error {
+    // Platform-specific implementation
+    return fsm.startPlatformMonitoring(ctx)
+}
+
+// macOS implementation using FSEvents
+func (fsm *FileSystemMonitor) startMacOSMonitoring(ctx context.Context) error {
+    // Implementation using CGO bindings to FSEvents API
+    return nil
+}
+
+// Windows implementation using ETW
+func (fsm *FileSystemMonitor) startWindowsMonitoring(ctx context.Context) error {
+    // Implementation using ETW (Event Tracing for Windows)
+    return nil
+}
+
+// Linux implementation using inotify
+func (fsm *FileSystemMonitor) startLinuxMonitoring(ctx context.Context) error {
+    // Implementation using inotify syscalls
+    return nil
+}
 ```
 
-#### Implementation Details
+### 3.2 Event Processing
 
-```python
-class RansomwareKillChain:
-    def __init__(self):
-        self.stages = {
-            "reconnaissance": ReconnaissanceDetector(),
-            "initial_access": InitialAccessDetector(),
-            "execution": ExecutionDetector(), 
-            "persistence": PersistenceDetector(),
-            "privilege_escalation": PrivEscDetector(),
-            "defense_evasion": DefenseEvasionDetector(),
-            "credential_access": CredentialAccessDetector(),
-            "discovery": DiscoveryDetector(),
-            "lateral_movement": LateralMovementDetector(),
-            "collection": CollectionDetector(),
-            "command_control": C2Detector(),
-            "exfiltration": ExfiltrationDetector(),
-            "encryption": EncryptionDetector(),
-            "ransom_demand": RansomDemandDetector()
+```go
+type EventProcessor struct {
+    eventQueue     chan SecurityEvent
+    batchSize      int
+    batchTimeout   time.Duration
+    serverComm     *ServerCommunication
+}
+
+func (ep *EventProcessor) Run(ctx context.Context) {
+    batch := make([]SecurityEvent, 0, ep.batchSize)
+    ticker := time.NewTicker(ep.batchTimeout)
+    defer ticker.Stop()
+    
+    for {
+        select {
+        case event := <-ep.eventQueue:
+            batch = append(batch, event)
+            if len(batch) >= ep.batchSize {
+                ep.sendBatch(batch)
+                batch = batch[:0]
+            }
+            
+        case <-ticker.C:
+            if len(batch) > 0 {
+                ep.sendBatch(batch)
+                batch = batch[:0]
+            }
+            
+        case <-ctx.Done():
+            if len(batch) > 0 {
+                ep.sendBatch(batch)
+            }
+            return
+        }
+    }
+}
+
+func (ep *EventProcessor) sendBatch(events []SecurityEvent) {
+    if err := ep.serverComm.SendEvents(events); err != nil {
+        // Implement retry logic with exponential backoff
+        log.Printf("Failed to send events: %v", err)
+    }
+}
+```
+
+---
+
+## 4. Quarkus Core Service
+
+### 4.1 Event Ingestion API
+
+```java
+@Path("/api/v1")
+@ApplicationScoped
+public class EventIngestionResource {
+
+    @Inject
+    EventProcessor eventProcessor;
+    
+    @Inject
+    SecurityEventRepository eventRepository;
+    
+    @Inject
+    MetricsCollector metricsCollector;
+
+    @POST
+    @Path("/events")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
+    public Uni<Response> ingestEvents(List<SecurityEvent> events) {
+        metricsCollector.recordEventsReceived(events.size());
+        
+        return eventProcessor.processEvents(events)
+            .chain(results -> eventRepository.persistEvents(events)
+                .map(ignored -> results))
+            .map(results -> Response.ok(results).build())
+            .onFailure().recoverWithItem(throwable -> {
+                metricsCollector.recordProcessingError();
+                return Response.status(500)
+                    .entity(Map.of("error", throwable.getMessage()))
+                    .build();
+            });
+    }
+    
+    @GET
+    @Path("/agents/{agentId}/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<Response> getAgentStatus(@PathParam("agentId") String agentId) {
+        return eventRepository.getAgentLastSeen(agentId)
+            .map(lastSeen -> {
+                boolean isActive = lastSeen != null && 
+                    Duration.between(lastSeen, Instant.now()).toMinutes() < 5;
+                
+                return Response.ok(Map.of(
+                    "agentId", agentId,
+                    "status", isActive ? "active" : "inactive",
+                    "lastSeen", lastSeen
+                )).build();
+            });
+    }
+}
+
+@ApplicationScoped
+public class EventProcessor {
+    
+    @Inject
+    RuleEngine ruleEngine;
+    
+    @Inject
+    MLServiceClient mlClient;
+    
+    @Inject
+    AlertManager alertManager;
+    
+    public Uni<List<DetectionResult>> processEvents(List<SecurityEvent> events) {
+        return Uni.combine().all()
+            .unis(
+                ruleEngine.evaluateEvents(events),
+                mlClient.predictThreatScore(events)
+            )
+            .combinedWith((ruleResults, mlScore) -> 
+                combineResults(events, ruleResults, mlScore))
+            .chain(results -> alertManager.processResults(results)
+                .map(ignored -> results));
+    }
+    
+    private List<DetectionResult> combineResults(
+            List<SecurityEvent> events,
+            RuleEvaluationResult ruleResults, 
+            MLPredictionResult mlScore) {
+        
+        float combinedScore = (ruleResults.getScore() * 0.6f) + 
+                             (mlScore.getThreatScore() * 0.4f);
+        
+        DetectionResult result = DetectionResult.builder()
+            .eventBatchId(UUID.randomUUID())
+            .timestamp(Instant.now())
+            .threatScore(combinedScore)
+            .confidence(calculateConfidence(ruleResults, mlScore))
+            .ruleMatches(ruleResults.getMatchedRules())
+            .mlFeatures(mlScore.getFeatures())
+            .indicators(extractIndicators(events, ruleResults))
+            .recommendedActions(generateActions(combinedScore))
+            .build();
+            
+        return List.of(result);
+    }
+}
+```
+
+### 4.2 Rule Engine Implementation
+
+```java
+@ApplicationScoped
+public class RuleEngine {
+    
+    private final Map<String, BehaviorRule> rules;
+    
+    @PostConstruct
+    void initializeRules() {
+        rules = Map.of(
+            "mass_file_encryption", new MassFileEncryptionRule(),
+            "shadow_copy_deletion", new ShadowCopyDeletionRule(),
+            "lateral_movement", new LateralMovementRule(),
+            "credential_access", new CredentialAccessRule(),
+            "process_injection", new ProcessInjectionRule(),
+            "backup_deletion", new BackupDeletionRule(),
+            "ransom_note_creation", new RansomNoteCreationRule()
+        );
+    }
+    
+    public Uni<RuleEvaluationResult> evaluateEvents(List<SecurityEvent> events) {
+        return Uni.createFrom().item(() -> {
+            Map<String, Float> ruleScores = new HashMap<>();
+            List<String> triggeredRules = new ArrayList<>();
+            
+            for (Map.Entry<String, BehaviorRule> entry : rules.entrySet()) {
+                String ruleName = entry.getKey();
+                BehaviorRule rule = entry.getValue();
+                
+                float score = rule.evaluate(events);
+                ruleScores.put(ruleName, score);
+                
+                if (score > rule.getThreshold()) {
+                    triggeredRules.add(ruleName);
+                }
+            }
+            
+            float combinedScore = calculateWeightedScore(ruleScores);
+            
+            return RuleEvaluationResult.builder()
+                .score(combinedScore)
+                .ruleScores(ruleScores)
+                .matchedRules(triggeredRules)
+                .evaluationTime(Instant.now())
+                .build();
+        }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+    }
+}
+
+public class MassFileEncryptionRule implements BehaviorRule {
+    
+    private static final float THRESHOLD = 0.7f;
+    private static final int MIN_FILES_FOR_ANALYSIS = 20;
+    
+    @Override
+    public float evaluate(List<SecurityEvent> events) {
+        List<SecurityEvent> fileEvents = events.stream()
+            .filter(e -> "file_operation".equals(e.getEventType()))
+            .filter(e -> "modify".equals(e.getFileAction()) || 
+                         "create".equals(e.getFileAction()))
+            .collect(Collectors.toList());
+        
+        if (fileEvents.size() < MIN_FILES_FOR_ANALYSIS) {
+            return 0.0f;
         }
         
-    def track_attack_progression(self, security_events):
-        """Track ransomware attack progression through kill-chain"""
-        current_stage = self.identify_current_stage(security_events)
-        next_stages = self.predict_next_stages(current_stage)
+        // Calculate metrics
+        long timeSpanSeconds = calculateTimeSpan(fileEvents);
+        double modificationsPerSecond = (double) fileEvents.size() / 
+                                       Math.max(timeSpanSeconds, 1);
         
-        return KillChainAnalysis(
-            current_stage=current_stage,
-            progression_confidence=self.calculate_confidence(),
-            predicted_next_stages=next_stages,
-            time_to_encryption=self.estimate_encryption_timeline(),
-            intervention_opportunities=self.identify_intervention_points()
-        )
+        // Check for extension changes
+        long extensionChanges = fileEvents.stream()
+            .filter(e -> hasExtensionChange(e))
+            .count();
+        
+        double extensionChangeRatio = (double) extensionChanges / fileEvents.size();
+        
+        // Check for entropy increase (simplified)
+        double avgEntropyIncrease = fileEvents.stream()
+            .mapToDouble(this::estimateEntropyIncrease)
+            .average()
+            .orElse(0.0);
+        
+        // Scoring algorithm
+        float score = 0.0f;
+        
+        // File modification rate scoring
+        if (modificationsPerSecond > 10.0) {
+            score += 0.4f;
+        } else if (modificationsPerSecond > 5.0) {
+            score += 0.3f;
+        } else if (modificationsPerSecond > 1.0) {
+            score += 0.2f;
+        }
+        
+        // Extension change scoring
+        if (extensionChangeRatio > 0.8) {
+            score += 0.3f;
+        } else if (extensionChangeRatio > 0.5) {
+            score += 0.2f;
+        }
+        
+        // Entropy increase scoring
+        if (avgEntropyIncrease > 0.5) {
+            score += 0.3f;
+        } else if (avgEntropyIncrease > 0.3) {
+            score += 0.2f;
+        }
+        
+        return Math.min(score, 1.0f);
+    }
+    
+    @Override
+    public float getThreshold() {
+        return THRESHOLD;
+    }
+    
+    private boolean hasExtensionChange(SecurityEvent event) {
+        // Check if file extension was changed to common ransomware extensions
+        String filePath = event.getFilePath();
+        if (filePath == null) return false;
+        
+        String[] ransomwareExtensions = {
+            ".encrypted", ".locked", ".crypto", ".crypt", ".enc",
+            ".locky", ".zepto", ".cerber", ".dharma", ".sage"
+        };
+        
+        return Arrays.stream(ransomwareExtensions)
+            .anyMatch(ext -> filePath.toLowerCase().endsWith(ext));
+    }
+    
+    private double estimateEntropyIncrease(SecurityEvent event) {
+        // Simplified entropy estimation
+        // In a real implementation, this would analyze file content
+        return hasExtensionChange(event) ? 0.8 : 0.1;
+    }
+}
 ```
 
-### 2.3 Ransomware-Specific Data Models
+### 4.3 Database Layer
 
-#### Database Schema Overview
+```java
+@Entity
+@Table(name = "security_events")
+public class SecurityEvent {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    public UUID id;
+    
+    @Column(name = "agent_id", nullable = false)
+    public String agentId;
+    
+    @Column(name = "event_type", nullable = false)
+    public String eventType;
+    
+    @Column(name = "timestamp", nullable = false)
+    public Instant timestamp;
+    
+    @Column(name = "process_id")
+    public Integer processId;
+    
+    @Column(name = "process_name")
+    public String processName;
+    
+    @Column(name = "process_path")
+    public String processPath;
+    
+    @Column(name = "file_path")
+    public String filePath;
+    
+    @Column(name = "file_action")
+    public String fileAction;
+    
+    @Column(name = "network_dest")
+    public String networkDest;
+    
+    @Column(name = "user_context")
+    public String userContext;
+    
+    @Type(JsonType.class)
+    @Column(name = "metadata", columnDefinition = "jsonb")
+    public Map<String, Object> metadata;
+    
+    @Column(name = "created_at")
+    public Instant createdAt;
+}
 
-```mermaid
-erDiagram
-    RANSOMWARE_GROUPS {
-        uuid id PK
-        varchar group_name
-        text[] aliases
-        timestamptz first_observed
-        timestamptz last_observed
-        text[] target_sectors
-        text[] target_regions
-        bigint average_ransom_demand
-        decimal success_rate
-        jsonb ttps
-        text[] encryption_methods
-        text[] payment_methods
-        text[] leak_site_urls
+@ApplicationScoped
+public class SecurityEventRepository implements PanacheRepository<SecurityEvent> {
+    
+    public Uni<Void> persistEvents(List<SecurityEvent> events) {
+        return Panache.withTransaction(() -> {
+            events.forEach(event -> {
+                event.createdAt = Instant.now();
+                persist(event);
+            });
+            return Uni.createFrom().voidItem();
+        });
     }
     
-    VICTIM_PROFILES {
-        uuid id PK
-        varchar organization_name
-        varchar industry
-        varchar size_category
-        varchar revenue_range
-        geometry geography
-        integer security_maturity_score
-        jsonb attack_surface
-        integer previous_incidents
-        decimal cyber_insurance_coverage
-        integer backup_maturity_score
+    public Uni<List<SecurityEvent>> findRecentByAgent(String agentId, Duration duration) {
+        Instant since = Instant.now().minus(duration);
+        return find("agentId = ?1 and timestamp >= ?2 order by timestamp desc", 
+                   agentId, since).list();
     }
     
-    RANSOMWARE_INCIDENTS {
-        uuid id PK
-        uuid victim_organization_id FK
-        uuid ransomware_group_id FK
-        timestamptz incident_date
-        timestamptz detection_date
-        varchar initial_access_vector
-        interval dwell_time
-        integer encrypted_systems
-        decimal ransom_demanded
-        decimal ransom_paid
-        interval recovery_time
-        decimal total_cost
-        boolean data_exfiltrated
-        boolean leak_site_published
-        jsonb attack_timeline
+    public Uni<Instant> getAgentLastSeen(String agentId) {
+        return find("agentId = ?1 order by timestamp desc", agentId)
+            .firstResult()
+            .map(event -> event != null ? event.timestamp : null);
     }
     
-    ATTACK_PATHS {
-        uuid id PK
-        uuid victim_profile_id FK
-        text path_description
-        varchar entry_vector
-        text[] required_vulnerabilities
-        integer exploitation_difficulty
-        decimal success_probability
-        decimal detection_probability
-        decimal mitigation_cost
-        integer business_impact_score
+    public Uni<Long> countEventsByTypeInWindow(String eventType, Duration window) {
+        Instant since = Instant.now().minus(window);
+        return count("eventType = ?1 and timestamp >= ?2", eventType, since);
     }
+}
+
+@Entity
+@Table(name = "detection_results")
+public class DetectionResult {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    public UUID id;
     
-    VICTIM_PROFILES ||--o{ RANSOMWARE_INCIDENTS : "targeted by"
-    RANSOMWARE_GROUPS ||--o{ RANSOMWARE_INCIDENTS : "executes"
-    VICTIM_PROFILES ||--o{ ATTACK_PATHS : "vulnerable to"
-```
-
-#### Detailed Schema Definitions
-
-```sql
--- Ransomware Groups and TTPs
-CREATE TABLE ransomware_groups (
-    id UUID PRIMARY KEY,
-    group_name VARCHAR(100) NOT NULL,
-    aliases TEXT[],
-    first_observed TIMESTAMPTZ,
-    last_observed TIMESTAMPTZ,
-    target_sectors TEXT[],
-    target_regions TEXT[],
-    average_ransom_demand BIGINT,
-    success_rate DECIMAL(3,2),
-    ttps JSONB,
-    encryption_methods TEXT[],
-    payment_methods TEXT[],
-    leak_site_urls TEXT[]
-);
-
--- Victim Organizations Profile
-CREATE TABLE victim_profiles (
-    id UUID PRIMARY KEY,
-    organization_name VARCHAR(200),
-    industry VARCHAR(100),
-    size_category VARCHAR(50), -- SMB, Enterprise, Fortune500
-    revenue_range VARCHAR(50),
-    geography GEOMETRY(POINT, 4326),
-    security_maturity_score INTEGER CHECK (security_maturity_score >= 1 AND security_maturity_score <= 5),
-    attack_surface JSONB,
-    previous_incidents INTEGER DEFAULT 0,
-    cyber_insurance_coverage DECIMAL(15,2),
-    backup_maturity_score INTEGER CHECK (backup_maturity_score >= 1 AND backup_maturity_score <= 5)
-);
-
--- Ransomware Incidents
-CREATE TABLE ransomware_incidents (
-    id UUID PRIMARY KEY,
-    victim_organization_id UUID REFERENCES victim_profiles(id),
-    ransomware_group_id UUID REFERENCES ransomware_groups(id),
-    incident_date TIMESTAMPTZ NOT NULL,
-    detection_date TIMESTAMPTZ,
-    initial_access_vector VARCHAR(100),
-    dwell_time INTERVAL,
-    encrypted_systems INTEGER,
-    ransom_demanded DECIMAL(15,2),
-    ransom_paid DECIMAL(15,2),
-    recovery_time INTERVAL,
-    total_cost DECIMAL(15,2),
-    data_exfiltrated BOOLEAN,
-    leak_site_published BOOLEAN,
-    attack_timeline JSONB
-);
-
--- Attack Path Analysis
-CREATE TABLE attack_paths (
-    id UUID PRIMARY KEY,
-    victim_profile_id UUID REFERENCES victim_profiles(id),
-    path_description TEXT,
-    entry_vector VARCHAR(100),
-    required_vulnerabilities TEXT[],
-    exploitation_difficulty INTEGER CHECK (exploitation_difficulty >= 1 AND exploitation_difficulty <= 10),
-    success_probability DECIMAL(3,2),
-    detection_probability DECIMAL(3,2),
-    mitigation_cost DECIMAL(10,2),
-    business_impact_score INTEGER CHECK (business_impact_score >= 1 AND business_impact_score <= 10)
-);
+    @Column(name = "event_batch_id")
+    public UUID eventBatchId;
+    
+    @Column(name = "agent_id")
+    public String agentId;
+    
+    @Column(name = "threat_score")
+    public Float threatScore;
+    
+    @Column(name = "confidence")
+    public Float confidence;
+    
+    @Type(JsonType.class)
+    @Column(name = "rule_matches", columnDefinition = "jsonb")
+    public List<String> ruleMatches;
+    
+    @Type(JsonType.class)
+    @Column(name = "indicators", columnDefinition = "jsonb")
+    public Map<String, Object> indicators;
+    
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    public DetectionStatus status = DetectionStatus.PENDING;
+    
+    @Column(name = "timestamp")
+    public Instant timestamp;
+    
+    public enum DetectionStatus {
+        PENDING, CONFIRMED, FALSE_POSITIVE, INVESTIGATING
+    }
+}
 ```
 
 ---
 
-## 3. Ransomware Prediction Models
+## 5. Machine Learning Service
 
-### 3.1 Victim Likelihood Scoring
+### 5.1 FastAPI ML Service
 
 ```python
-class VictimLikelihoodModel:
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+from typing import List, Dict, Optional
+import numpy as np
+import pandas as pd
+import joblib
+from pydantic import BaseModel, Field
+from datetime import datetime
+import logging
+from sklearn.ensemble import RandomForestClassifier, IsolationForest
+from sklearn.preprocessing import StandardScaler
+import asyncio
+
+app = FastAPI(
+    title="KRIIR ML Service",
+    description="Machine Learning API for ransomware detection",
+    version="1.0.0"
+)
+
+logger = logging.getLogger(__name__)
+
+class SecurityEvent(BaseModel):
+    id: str
+    agent_id: str
+    timestamp: datetime
+    event_type: str
+    process_id: Optional[int] = None
+    process_name: Optional[str] = None
+    process_path: Optional[str] = None
+    file_path: Optional[str] = None
+    file_action: Optional[str] = None
+    network_dest: Optional[str] = None
+    user_context: Optional[str] = None
+    metadata: Dict = Field(default_factory=dict)
+
+class MLPredictionRequest(BaseModel):
+    events: List[SecurityEvent]
+    agent_id: str
+
+class MLPredictionResult(BaseModel):
+    threat_score: float = Field(..., ge=0.0, le=1.0)
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    anomaly_score: float = Field(..., ge=0.0, le=1.0)
+    features: Dict[str, float]
+    model_version: str
+    prediction_time: datetime
+
+class ModelManager:
     def __init__(self):
-        self.feature_extractors = {
-            'financial_attractiveness': FinancialAttractiveness(),
-            'security_posture': SecurityPostureAnalyzer(),
-            'attack_surface': AttackSurfaceScanner(),
-            'industry_targeting': IndustryTargetingModel(),
-            'geographic_risk': GeographicRiskModel(),
-            'payment_likelihood': PaymentLikelihoodModel()
-        }
+        self.classifier = None
+        self.anomaly_detector = None
+        self.scaler = None
+        self.feature_extractor = None
+        self.model_version = "1.0.0"
         
-    def calculate_victim_score(self, organization):
-        """Calculate how attractive organization is to ransomware groups"""
+    async def load_models(self):
+        """Load pre-trained models"""
+        try:
+            self.classifier = joblib.load("models/ransomware_classifier_v1.pkl")
+            self.anomaly_detector = joblib.load("models/anomaly_detector_v1.pkl")
+            self.scaler = joblib.load("models/feature_scaler_v1.pkl")
+            self.feature_extractor = FeatureExtractor()
+            logger.info("Models loaded successfully")
+        except FileNotFoundError:
+            logger.warning("Pre-trained models not found, using defaults")
+            self._create_default_models()
+    
+    def _create_default_models(self):
+        """Create default models for initial deployment"""
+        self.classifier = RandomForestClassifier(
+            n_estimators=100,
+            max_depth=10,
+            random_state=42
+        )
+        self.anomaly_detector = IsolationForest(
+            contamination=0.1,
+            random_state=42
+        )
+        self.scaler = StandardScaler()
+        self.feature_extractor = FeatureExtractor()
+        
+    def predict(self, events: List[SecurityEvent]) -> MLPredictionResult:
+        """Make prediction on security events"""
+        features = self.feature_extractor.extract_features(events)
+        feature_vector = list(features.values())
+        
+        if self.scaler:
+            feature_vector = self.scaler.transform([feature_vector])[0]
+        
+        # Classification prediction
+        if self.classifier:
+            threat_prob = self.classifier.predict_proba([feature_vector])[0]
+            threat_score = threat_prob[1] if len(threat_prob) > 1 else threat_prob[0]
+        else:
+            threat_score = 0.5  # Default neutral score
+        
+        # Anomaly detection
+        if self.anomaly_detector:
+            anomaly_score = abs(self.anomaly_detector.decision_function([feature_vector])[0])
+            anomaly_score = min(max(anomaly_score, 0.0), 1.0)  # Normalize to 0-1
+        else:
+            anomaly_score = 0.0
+        
+        # Calculate confidence
+        confidence = self._calculate_confidence(threat_score, features)
+        
+        return MLPredictionResult(
+            threat_score=float(threat_score),
+            confidence=float(confidence),
+            anomaly_score=float(anomaly_score),
+            features=features,
+            model_version=self.model_version,
+            prediction_time=datetime.now()
+        )
+    
+    def _calculate_confidence(self, threat_score: float, features: Dict) -> float:
+        """Calculate prediction confidence based on feature quality and model certainty"""
+        # Higher confidence for extreme scores (closer to 0 or 1)
+        score_confidence = 2 * abs(threat_score - 0.5)
+        
+        # Feature quality assessment
+        feature_count = len([v for v in features.values() if v > 0])
+        feature_confidence = min(feature_count / 10.0, 1.0)  # Normalize by expected feature count
+        
+        return (score_confidence + feature_confidence) / 2
+
+class FeatureExtractor:
+    def extract_features(self, events: List[SecurityEvent]) -> Dict[str, float]:
+        """Extract behavioral features from security events"""
+        if not events:
+            return {}
+        
+        df = pd.DataFrame([self._event_to_dict(event) for event in events])
         features = {}
         
-        # Financial attractiveness (40% weight)
-        features['financial'] = self.assess_financial_attractiveness(
-            revenue=organization.revenue,
-            cyber_insurance=organization.insurance_coverage,
-            industry_payment_rates=self.get_industry_payment_rates(organization.industry)
+        # Basic statistics
+        features['total_events'] = len(events)
+        features['unique_processes'] = df['process_name'].nunique() if 'process_name' in df else 0
+        features['time_span_seconds'] = self._calculate_time_span(events)
+        
+        # File operation features
+        file_events = df[df['event_type'] == 'file_operation'] if 'event_type' in df else pd.DataFrame()
+        if not file_events.empty:
+            features['file_operations_count'] = len(file_events)
+            features['file_modifications_per_second'] = len(file_events) / max(features['time_span_seconds'], 1)
+            features['unique_file_extensions'] = self._count_unique_extensions(file_events)
+            features['suspicious_extensions_ratio'] = self._calculate_suspicious_extension_ratio(file_events)
+            features['rapid_file_changes'] = self._detect_rapid_file_changes(file_events)
+        else:
+            features.update({
+                'file_operations_count': 0,
+                'file_modifications_per_second': 0,
+                'unique_file_extensions': 0,
+                'suspicious_extensions_ratio': 0,
+                'rapid_file_changes': 0
+            })
+        
+        # Process features
+        process_events = df[df['event_type'] == 'process_creation'] if 'event_type' in df else pd.DataFrame()
+        if not process_events.empty:
+            features['process_creations'] = len(process_events)
+            features['admin_processes_ratio'] = self._calculate_admin_ratio(process_events)
+            features['suspicious_process_names'] = self._count_suspicious_processes(process_events)
+        else:
+            features.update({
+                'process_creations': 0,
+                'admin_processes_ratio': 0,
+                'suspicious_process_names': 0
+            })
+        
+        # Network features
+        network_events = df[df['event_type'] == 'network_connection'] if 'event_type' in df else pd.DataFrame()
+        if not network_events.empty:
+            features['network_connections'] = len(network_events)
+            features['external_connections_ratio'] = self._calculate_external_ratio(network_events)
+            features['unique_destinations'] = network_events['network_dest'].nunique() if 'network_dest' in network_events else 0
+        else:
+            features.update({
+                'network_connections': 0,
+                'external_connections_ratio': 0,
+                'unique_destinations': 0
+            })
+        
+        # Behavioral patterns
+        features['events_per_second'] = len(events) / max(features['time_span_seconds'], 1)
+        features['process_diversity'] = features['unique_processes'] / max(features['total_events'], 1)
+        features['activity_burst_score'] = self._calculate_activity_burst(events)
+        
+        return features
+    
+    def _event_to_dict(self, event: SecurityEvent) -> dict:
+        """Convert SecurityEvent to dictionary"""
+        return {
+            'event_type': event.event_type,
+            'process_name': event.process_name,
+            'file_path': event.file_path,
+            'file_action': event.file_action,
+            'network_dest': event.network_dest,
+            'user_context': event.user_context,
+            'timestamp': event.timestamp
+        }
+    
+    def _calculate_time_span(self, events: List[SecurityEvent]) -> float:
+        """Calculate time span of events in seconds"""
+        if len(events) < 2:
+            return 1.0
+        
+        timestamps = [event.timestamp for event in events]
+        time_span = (max(timestamps) - min(timestamps)).total_seconds()
+        return max(time_span, 1.0)
+    
+    def _count_unique_extensions(self, file_events: pd.DataFrame) -> int:
+        """Count unique file extensions"""
+        if 'file_path' not in file_events.columns:
+            return 0
+        
+        extensions = file_events['file_path'].dropna().str.split('.').str[-1].unique()
+        return len(extensions)
+    
+    def _calculate_suspicious_extension_ratio(self, file_events: pd.DataFrame) -> float:
+        """Calculate ratio of files with suspicious extensions"""
+        if 'file_path' not in file_events.columns or file_events.empty:
+            return 0.0
+        
+        suspicious_extensions = {
+            'encrypted', 'locked', 'crypto', 'crypt', 'enc', 'locky',
+            'zepto', 'cerber', 'dharma', 'sage', 'wallet'
+        }
+        
+        total_files = len(file_events['file_path'].dropna())
+        if total_files == 0:
+            return 0.0
+        
+        suspicious_count = sum(
+            1 for path in file_events['file_path'].dropna()
+            if any(ext in path.lower() for ext in suspicious_extensions)
         )
         
-        # Security posture vulnerability (30% weight)
-        features['security'] = self.assess_security_weaknesses(
-            patch_management=organization.patch_score,
-            backup_maturity=organization.backup_score,
-            security_training=organization.training_score,
-            mfa_deployment=organization.mfa_coverage
+        return suspicious_count / total_files
+    
+    def _detect_rapid_file_changes(self, file_events: pd.DataFrame) -> float:
+        """Detect rapid changes to the same files"""
+        if 'file_path' not in file_events.columns or file_events.empty:
+            return 0.0
+        
+        file_counts = file_events['file_path'].value_counts()
+        max_changes = file_counts.max() if not file_counts.empty else 0
+        
+        return min(max_changes / 10.0, 1.0)  # Normalize to 0-1
+    
+    def _calculate_admin_ratio(self, process_events: pd.DataFrame) -> float:
+        """Calculate ratio of processes running with admin privileges"""
+        if 'user_context' not in process_events.columns or process_events.empty:
+            return 0.0
+        
+        total_processes = len(process_events)
+        admin_processes = sum(
+            1 for context in process_events['user_context'].fillna('')
+            if 'admin' in context.lower() or 'root' in context.lower()
         )
         
-        # Attack surface exposure (20% weight)
-        features['exposure'] = self.assess_attack_surface(
-            external_assets=organization.external_assets,
-            remote_access=organization.remote_access_points,
-            third_party_connections=organization.vendor_connections
+        return admin_processes / total_processes if total_processes > 0 else 0.0
+    
+    def _count_suspicious_processes(self, process_events: pd.DataFrame) -> float:
+        """Count suspicious process names"""
+        if 'process_name' not in process_events.columns or process_events.empty:
+            return 0.0
+        
+        suspicious_processes = {
+            'powershell.exe', 'cmd.exe', 'wmic.exe', 'vssadmin.exe',
+            'bcdedit.exe', 'wbadmin.exe', 'schtasks.exe'
+        }
+        
+        total_processes = len(process_events)
+        suspicious_count = sum(
+            1 for name in process_events['process_name'].fillna('')
+            if name.lower() in suspicious_processes
         )
         
-        # Targeting patterns (10% weight)
-        features['targeting'] = self.assess_targeting_likelihood(
-            industry=organization.industry,
-            geography=organization.location,
-            size=organization.size,
-            recent_group_activity=self.get_recent_targeting_activity()
+        return suspicious_count / total_processes if total_processes > 0 else 0.0
+    
+    def _calculate_external_ratio(self, network_events: pd.DataFrame) -> float:
+        """Calculate ratio of external network connections"""
+        if 'network_dest' not in network_events.columns or network_events.empty:
+            return 0.0
+        
+        total_connections = len(network_events)
+        internal_patterns = ['192.168.', '10.', '172.16.', '127.', 'localhost']
+        
+        external_count = sum(
+            1 for dest in network_events['network_dest'].fillna('')
+            if not any(pattern in dest for pattern in internal_patterns)
         )
         
-        weighted_score = (
-            features['financial'] * 0.4 +
-            features['security'] * 0.3 +
-            features['exposure'] * 0.2 +
-            features['targeting'] * 0.1
-        )
+        return external_count / total_connections if total_connections > 0 else 0.0
+    
+    def _calculate_activity_burst(self, events: List[SecurityEvent]) -> float:
+        """Calculate activity burst score"""
+        if len(events) < 10:
+            return 0.0
         
-        return VictimScore(
-            overall_score=weighted_score,
-            confidence=self.calculate_confidence(features),
-            feature_breakdown=features,
-            risk_factors=self.identify_top_risk_factors(features)
-        )
-```
+        # Simple burst detection based on time distribution
+        timestamps = sorted([event.timestamp for event in events])
+        intervals = [
+            (timestamps[i+1] - timestamps[i]).total_seconds()
+            for i in range(len(timestamps)-1)
+        ]
+        
+        if not intervals:
+            return 0.0
+        
+        avg_interval = sum(intervals) / len(intervals)
+        short_intervals = sum(1 for interval in intervals if interval < avg_interval / 2)
+        
+        return min(short_intervals / len(intervals), 1.0)
 
-### 3.2 Attack Timeline Prediction
+# Initialize model manager
+model_manager = ModelManager()
 
-```python
-class AttackTimelinePredictor:
-    def __init__(self):
-        self.timeline_model = TransformerTimelineModel()
-        self.seasonal_analyzer = SeasonalAttackAnalyzer()
-        self.group_behavior_model = GroupBehaviorModel()
-        
-    def predict_attack_window(self, victim_score, threat_landscape):
-        """Predict when ransomware attack is most likely to occur"""
-        
-        # Base likelihood from victim attractiveness
-        base_likelihood = victim_score.overall_score / 10.0
-        
-        # Seasonal factors (higher during holidays, weekends)
-        seasonal_multiplier = self.seasonal_analyzer.get_current_risk_multiplier()
-        
-        # Active group campaign patterns
-        campaign_intelligence = self.group_behavior_model.analyze_current_campaigns()
-        
-        # Geopolitical factors
-        geopolitical_risk = self.assess_geopolitical_ransomware_risk()
-        
-        # Combine factors for timeline prediction
-        attack_probability = min(
-            base_likelihood * seasonal_multiplier * campaign_intelligence.activity_multiplier,
-            1.0
-        )
-        
-        # Predict specific time windows
-        time_windows = self.calculate_attack_windows(
-            attack_probability, 
-            seasonal_patterns=self.seasonal_analyzer.get_patterns(),
-            group_preferences=campaign_intelligence.timing_preferences
-        )
-        
-        return AttackTimelinePrediction(
-            next_7_days_probability=time_windows.week_1,
-            next_30_days_probability=time_windows.month_1,
-            next_90_days_probability=time_windows.quarter_1,
-            peak_risk_periods=time_windows.peak_periods,
-            contributing_factors={
-                'victim_attractiveness': base_likelihood,
-                'seasonal_risk': seasonal_multiplier,
-                'group_activity': campaign_intelligence.activity_score,
-                'geopolitical_risk': geopolitical_risk
-            }
-        )
+@app.on_event("startup")
+async def startup_event():
+    await model_manager.load_models()
+
+@app.post("/predict", response_model=MLPredictionResult)
+async def predict_threat(request: MLPredictionRequest):
+    """Predict ransomware threat from security events"""
+    try:
+        result = model_manager.predict(request.events)
+        return result
+    except Exception as e:
+        logger.error(f"Prediction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "model_loaded": model_manager.classifier is not None,
+        "version": model_manager.model_version
+    }
+
+@app.get("/models/info")
+async def model_info():
+    """Get information about loaded models"""
+    return {
+        "classifier_type": type(model_manager.classifier).__name__ if model_manager.classifier else None,
+        "anomaly_detector_type": type(model_manager.anomaly_detector).__name__ if model_manager.anomaly_detector else None,
+        "model_version": model_manager.model_version,
+        "features_count": len(model_manager.feature_extractor.extract_features([]))
+    }
 ```
 
 ---
 
-## 4. Real-Time Ransomware Defense
+## 6. Performance Targets and Monitoring
 
-### 4.1 Automated Kill-Chain Interruption
+### 6.1 Performance Specifications
 
-```python
-class RansomwareDefenseOrchestrator:
-    def __init__(self):
-        self.kill_chain_monitor = KillChainMonitor()
-        self.automated_responses = AutomatedResponseSystem()
-        self.backup_orchestrator = BackupOrchestrator()
-        self.network_isolation = NetworkIsolationSystem()
-        
-    def monitor_and_respond(self, security_events):
-        """Real-time monitoring and automated response to ransomware attacks"""
-        
-        # Analyze events for ransomware indicators
-        kill_chain_analysis = self.kill_chain_monitor.analyze_events(security_events)
-        
-        if kill_chain_analysis.ransomware_confidence > 0.8:
-            # High confidence ransomware detection - immediate response
-            response_actions = self.orchestrate_immediate_response(kill_chain_analysis)
-            
-        elif kill_chain_analysis.ransomware_confidence > 0.6:
-            # Medium confidence - enhanced monitoring and preparation
-            response_actions = self.orchestrate_enhanced_monitoring(kill_chain_analysis)
-            
-        elif kill_chain_analysis.ransomware_confidence > 0.4:
-            # Low confidence - increase alerting
-            response_actions = self.orchestrate_increased_alerting(kill_chain_analysis)
-            
-        return DefenseResponse(
-            confidence_level=kill_chain_analysis.ransomware_confidence,
-            current_stage=kill_chain_analysis.current_stage,
-            actions_taken=response_actions,
-            estimated_time_to_encryption=kill_chain_analysis.time_to_encryption,
-            recommendations=self.generate_recommendations(kill_chain_analysis)
-        )
-        
-    def orchestrate_immediate_response(self, analysis):
-        """Immediate automated response to high-confidence ransomware detection"""
-        actions = []
-        
-        # 1. Trigger emergency backups
-        backup_result = self.backup_orchestrator.trigger_emergency_backup()
-        actions.append(f"Emergency backup initiated: {backup_result.status}")
-        
-        # 2. Isolate affected systems
-        isolation_result = self.network_isolation.isolate_compromised_hosts(
-            analysis.compromised_hosts
-        )
-        actions.append(f"Network isolation: {len(isolation_result.isolated_hosts)} hosts isolated")
-        
-        # 3. Block lateral movement paths
-        lateral_blocking = self.network_isolation.block_lateral_movement(
-            analysis.lateral_movement_paths
-        )
-        actions.append(f"Lateral movement blocked: {lateral_blocking.paths_blocked} paths")
-        
-        # 4. Disable vulnerable services
-        service_shutdown = self.automated_responses.shutdown_vulnerable_services(
-            analysis.vulnerable_services
-        )
-        actions.append(f"Services disabled: {service_shutdown.services_shutdown}")
-        
-        # 5. Alert security team
-        alert_result = self.automated_responses.send_critical_alert(
-            message=f"CRITICAL: Ransomware attack detected at stage {analysis.current_stage}",
-            channels=['email', 'sms', 'slack', 'pagerduty']
-        )
-        actions.append(f"Critical alerts sent: {alert_result.channels_notified}")
-        
-        return actions
+```java
+@ApplicationScoped
+public class PerformanceTargets {
+    
+    // Detection accuracy targets
+    public static final double TARGET_DETECTION_RATE = 0.85;          // 85%
+    public static final double TARGET_FALSE_POSITIVE_RATE = 0.05;     // 5%
+    public static final double TARGET_FALSE_NEGATIVE_RATE = 0.15;     // 15%
+    
+    // Response time targets
+    public static final int TARGET_EVENT_PROCESSING_MS = 30000;       // 30 seconds
+    public static final int TARGET_API_RESPONSE_MS = 200;             // 200ms
+    public static final int TARGET_ALERT_GENERATION_MS = 60000;       // 1 minute
+    
+    // Throughput targets
+    public static final int TARGET_EVENTS_PER_SECOND = 1000;          // 1K events/sec
+    public static final int TARGET_CONCURRENT_AGENTS = 10000;         // 10K agents
+    public static final int TARGET_BATCH_SIZE = 100;                  // 100 events/batch
+    
+    // Resource usage targets (agent)
+    public static final int TARGET_AGENT_MEMORY_MB = 100;             // <100MB
+    public static final double TARGET_AGENT_CPU_PERCENT = 0.05;       // <5% CPU
+    public static final int TARGET_AGENT_NETWORK_KB_SEC = 50;         // <50KB/sec
+    
+    // Availability targets
+    public static final double TARGET_SYSTEM_UPTIME = 0.999;          // 99.9%
+    public static final int TARGET_MAX_DOWNTIME_MINUTES = 43;         // 43 min/month
+}
 ```
 
-### 4.2 Ransomware-Specific SIEM Rules
+### 6.2 Metrics Collection
+
+```java
+@ApplicationScoped
+public class MetricsCollector {
+    
+    @Inject
+    MeterRegistry meterRegistry;
+    
+    private final Counter eventsReceived;
+    private final Counter eventsProcessed;
+    private final Counter detectionsGenerated;
+    private final Counter falsePositivesReported;
+    private final Timer eventProcessingTime;
+    private final Timer mlPredictionTime;
+    private final Gauge activeAgents;
+    private final Gauge systemLoad;
+    
+    @PostConstruct
+    void initializeMetrics() {
+        eventsReceived = Counter.builder("kriir.events.received")
+            .description("Total events received from agents")
+            .register(meterRegistry);
+            
+        eventsProcessed = Counter.builder("kriir.events.processed")
+            .description("Total events successfully processed")
+            .register(meterRegistry);
+            
+        detectionsGenerated = Counter.builder("kriir.detections.generated")
+            .description("Total detections generated")
+            .tag("severity", "high")
+            .register(meterRegistry);
+            
+        falsePositivesReported = Counter.builder("kriir.false_positives")
+            .description("False positives reported by users")
+            .register(meterRegistry);
+            
+        eventProcessingTime = Timer.builder("kriir.processing.time")
+            .description("Time to process event batches")
+            .register(meterRegistry);
+            
+        mlPredictionTime = Timer.builder("kriir.ml.prediction.time")
+            .description("ML prediction response time")
+            .register(meterRegistry);
+    }
+    
+    public void recordEventsReceived(int count) {
+        eventsReceived.increment(count);
+    }
+    
+    public void recordEventProcessed() {
+        eventsProcessed.increment();
+    }
+    
+    public void recordDetection(String severity) {
+        detectionsGenerated.increment(Tags.of("severity", severity));
+    }
+    
+    public void recordProcessingTime(Duration duration) {
+        eventProcessingTime.record(duration);
+    }
+    
+    public Timer.Sample startMLTimer() {
+        return Timer.start(meterRegistry);
+    }
+    
+    public void recordMLPredictionTime(Timer.Sample sample) {
+        sample.stop(mlPredictionTime);
+    }
+    
+    // Calculate derived metrics
+    public double calculateDetectionRate() {
+        double totalDetections = detectionsGenerated.count();
+        double truePositives = totalDetections - falsePositivesReported.count();
+        return truePositives / Math.max(totalDetections, 1);
+    }
+    
+    public double calculateFalsePositiveRate() {
+        double totalDetections = detectionsGenerated.count();
+        double falsePositives = falsePositivesReported.count();
+        return falsePositives / Math.max(totalDetections, 1);
+    }
+}
+```
+
+---
+
+## 7. Deployment and Infrastructure
+
+### 7.1 Docker Configuration
 
 ```yaml
-# High-Fidelity Ransomware Detection Rules
-ransomware_detection_rules:
-  
-  # Mass file encryption detection
-  - name: "Mass File Encryption Activity"
-    severity: "CRITICAL"
-    confidence: 0.95
-    description: "Detects rapid file encryption patterns indicative of ransomware"
-    conditions:
-      - file_modification_rate: ">1000/minute"
-      - file_extensions_changed: ">100"
-      - new_file_extensions: [".encrypt", ".locked", ".crypto", ".crypt"]
-      - entropy_increase: ">0.8"
-    actions:
-      - trigger_emergency_backup
-      - isolate_host
-      - alert_security_team
+# docker-compose.yml
+version: '3.8'
+
+services:
+  kriir-core:
+    build: 
+      context: ./kriir-core
+      dockerfile: src/main/docker/Dockerfile.jvm
+    ports:
+      - "8080:8080"
+    environment:
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://kriir-db:5432/kriir
+      - QUARKUS_DATASOURCE_USERNAME=kriir
+      - QUARKUS_DATASOURCE_PASSWORD=kriir123
+      - QUARKUS_REDIS_HOSTS=redis://kriir-redis:6379
+      - KRIIR_ML_SERVICE_URL=http://kriir-ml:8000
+      - QUARKUS_LOG_LEVEL=INFO
+    depends_on:
+      - kriir-db
+      - kriir-redis
+      - kriir-ml
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/q/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    
+  kriir-ml:
+    build: ./kriir-ml
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=/app/models
+      - LOG_LEVEL=INFO
+      - WORKERS=4
+    volumes:
+      - ./models:/app/models:ro
+      - ./ml-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    
+  kriir-dashboard:
+    build: ./kriir-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080
+      - REACT_APP_WS_URL=ws://localhost:8080
+    depends_on:
+      - kriir-core
+    restart: unless-stopped
+    
+  kriir-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=kriir
+      - POSTGRES_USER=kriir
+      - POSTGRES_PASSWORD=kriir123
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    
+  kriir-redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+    
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: kriir-network
+```
+
+### 7.2 Production Kubernetes Deployment
+
+```yaml
+# kubernetes/kriir-core-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kriir-core
+  namespace: kriir
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kriir-core
+  template:
+    metadata:
+      labels:
+        app: kriir-core
+    spec:
+      containers:
+      - name: kriir-core
+        image: kriir/core:1.0.0
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: QUARKUS_DATASOURCE_JDBC_URL
+          valueFrom:
+            secretKeyRef:
+              name: kriir-secrets
+              key: database-url
+        - name: QUARKUS_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: kriir-secrets
+              key: database-username
+        - name: QUARKUS_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kriir-secrets
+              key: database-password
+        - name: QUARKUS_REDIS_HOSTS
+          value: "redis://kriir-redis:6379"
+        - name: KRIIR_ML_SERVICE_URL
+          value: "http://kriir-ml:8000"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1500m"
+        livenessProbe:
+          httpGet:
+            path: /q/health/live
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /q/health/ready
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kriir-core
+  namespace: kriir
+spec:
+  selector:
+    app: kriir-core
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kriir-ml
+  namespace: kriir
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kriir-ml
+  template:
+    metadata:
+      labels:
+        app: kriir-ml
+    spec:
+      containers:
+      - name: kriir-ml
+        image: kriir/ml:1.0.0
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: MODEL_PATH
+          value: "/app/models"
+        - name: WORKERS
+          value: "4"
+        volumeMounts:
+        - name: model-storage
+          mountPath: /app/models
+          readOnly: true
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: kriir-model-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kriir-ml
+  namespace: kriir
+spec:
+  selector:
+    app: kriir-ml
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  type: ClusterIP
+```
+
+---
+
+## 8. Security and Authentication
+
+### 8.1 Agent Authentication
+
+```java
+@ApplicationScoped
+public class AgentAuthenticationService {
+    
+    @Inject
+    @ConfigProperty(name = "kriir.agent.jwt.secret")
+    String jwtSecret;
+    
+    @Inject
+    AgentRepository agentRepository;
+    
+    public String generateAgentToken(String agentId) {
+        return Jwt.issuer("kriir-server")
+            .audience("kriir-agents")
+            .subject(agentId)
+            .issuedAt(Instant.now())
+            .expiresAt(Instant.now().plus(Duration.ofDays(30)))
+            .sign();
+    }
+    
+    public boolean validateAgentToken(String token) {
+        try {
+            JsonWebToken jwt = Jwt.parse(token);
+            String agentId = jwt.getSubject();
+            
+            return agentRepository.findByIdOptional(agentId)
+                .map(agent -> agent.status == AgentStatus.ACTIVE)
+                .orElse(false);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}
+
+@ApplicationScoped
+public class SecurityEventValidator {
+    
+    public boolean validateEventBatch(List<SecurityEvent> events, String agentId) {
+        if (events == null || events.isEmpty()) {
+            return false;
+        }
+        
+        // Validate all events belong to the authenticated agent
+        boolean agentIdMatch = events.stream()
+            .allMatch(event -> agentId.equals(event.getAgentId()));
+        
+        // Validate timestamp recency (events should be within last hour)
+        Instant oneHourAgo = Instant.now().minus(Duration.ofHours(1));
+        boolean recentTimestamps = events.stream()
+            .allMatch(event -> event.getTimestamp().isAfter(oneHourAgo));
+        
+        // Validate event structure
+        boolean validStructure = events.stream()
+            .allMatch(this::validateEventStructure);
+        
+        return agentIdMatch && recentTimestamps && validStructure;
+    }
+    
+    private boolean validateEventStructure(SecurityEvent event) {
+        return event.getId() != null &&
+               event.getAgentId() != null &&
+               event.getEventType() != null &&
+               event.getTimestamp() != null;
+    }
+}
+```
+
+### 8.2 Data Protection
+
+```yaml
+# Data protection configuration
+kriir:
+  security:
+    encryption:
+      enabled: true
+      algorithm: "AES-256-GCM"
+      key-rotation-days: 30
+    
+    data-retention:
+      security-events-days: 90
+      detection-results-days: 365
+      audit-logs-days: 2555  # 7 years
+    
+    privacy:
+      anonymize-user-data: true
+      hash-file-paths: true
+      exclude-sensitive-metadata: true
+    
+    communication:
+      tls-version: "1.3"
+      certificate-validation: true
+      client-certificates: true
+```
+
+---
+
+## 9. Monitoring and Observability
+
+### 9.1 Application Monitoring
+
+```yaml
+# monitoring/prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "kriir-alerts.yml"
+
+scrape_configs:
+  - job_name: 'kriir-core'
+    static_configs:
+      - targets: ['kriir-core:8080']
+    metrics_path: '/q/metrics'
+    scrape_interval: 10s
+    
+  - job_name: 'kriir-ml'
+    static_configs:
+      - targets: ['kriir-ml:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+```
+
+### 9.2 Custom Alerts
+
+```yaml
+# monitoring/kriir-alerts.yml
+groups:
+- name: kriir-performance
+  rules:
+  - alert: HighEventProcessingLatency
+    expr: histogram_quantile(0.95, kriir_processing_time_seconds) > 30
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High event processing latency detected"
+      description: "95th percentile processing time is {{ $value }} seconds"
       
-  # Ransomware note creation
-  - name: "Ransom Note Creation"
-    severity: "CRITICAL" 
-    confidence: 0.90
-    description: "Detects creation of ransomware demand notes"
-    conditions:
-      - file_names: ["README.txt", "DECRYPT.txt", "HOW_TO_RECOVER.txt"]
-      - file_content_contains: ["bitcoin", "decrypt", "payment", "ransom"]
-      - multiple_directories: true
-    actions:
-      - immediate_incident_response
-      - preserve_evidence
-      - notify_law_enforcement
+  - alert: MLServiceDown
+    expr: up{job="kriir-ml"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "ML service is down"
+      description: "The ML prediction service has been down for more than 1 minute"
       
-  # Shadow copy deletion
-  - name: "Shadow Copy Deletion"
-    severity: "HIGH"
-    confidence: 0.85
-    description: "Detects deletion of volume shadow copies"
-    conditions:
-      - process_name: ["vssadmin.exe", "wmic.exe"]
-      - command_line_contains: ["delete shadows", "shadowcopy delete"]
-      - user_privileges: "admin"
-    actions:
-      - block_process_execution
-      - trigger_backup_protection
-      - increase_monitoring
+  - alert: HighFalsePositiveRate
+    expr: (kriir_false_positives_total / kriir_detections_generated_total) > 0.1
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High false positive rate detected"
+      description: "False positive rate is {{ $value | humanizePercentage }}"
       
-  # Credential dumping for lateral movement
-  - name: "Credential Dumping for Ransomware"
-    severity: "HIGH"
-    confidence: 0.80
-    description: "Detects credential harvesting preceding ransomware deployment"
-    conditions:
-      - tools_detected: ["mimikatz", "procdump", "lsass dumping"]
-      - followed_by_lateral_movement: true
-      - timeframe: "within 2 hours"
-    actions:
-      - reset_compromised_accounts
-      - disable_lateral_movement_paths
-      - enhanced_authentication_required
+  - alert: AgentConnectivityIssues
+    expr: increase(kriir_agent_connection_errors_total[5m]) > 10
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Multiple agent connectivity issues"
+      description: "{{ $value }} agent connection errors in the last 5 minutes"
 ```
 
 ---
 
-## 5. Ransomware Intelligence and Attribution
+## 10. Testing Strategy
 
-### 5.1 Ransomware Group Tracking
+### 10.1 Unit Testing
 
-```python
-class RansomwareGroupIntelligence:
-    def __init__(self):
-        self.group_profiler = RansomwareGroupProfiler()
-        self.ttp_analyzer = TTPs_Analyzer()
-        self.payment_tracker = RansomPaymentTracker()
-        self.leak_site_monitor = LeakSiteMonitor()
+```java
+@QuarkusTest
+class RuleEngineTest {
+    
+    @Inject
+    RuleEngine ruleEngine;
+    
+    @Test
+    void testMassFileEncryptionDetection() {
+        // Given
+        List<SecurityEvent> events = createMassFileEncryptionEvents();
         
-    def track_ransomware_groups(self):
-        """Comprehensive tracking of ransomware group activities"""
-        active_groups = self.group_profiler.get_active_groups()
+        // When
+        RuleEvaluationResult result = ruleEngine.evaluateEvents(events).await().indefinitely();
         
-        intelligence = {}
-        for group in active_groups:
-            group_intel = self.analyze_group_activity(group)
-            intelligence[group.name] = group_intel
-            
-        return RansomwareGroupIntelligence(
-            active_groups=len(active_groups),
-            total_intelligence=intelligence,
-            trending_groups=self.identify_trending_groups(intelligence),
-            emerging_threats=self.identify_emerging_threats(intelligence)
-        )
+        // Then
+        assertThat(result.getScore()).isGreaterThan(0.7f);
+        assertThat(result.getMatchedRules()).contains("mass_file_encryption");
+    }
+    
+    @Test
+    void testNormalActivityNoDetection() {
+        // Given
+        List<SecurityEvent> events = createNormalActivityEvents();
         
-    def analyze_group_activity(self, group):
-        """Deep analysis of specific ransomware group"""
-        return GroupAnalysis(
-            recent_victims=self.get_recent_victims(group, days=30),
-            attack_frequency=self.calculate_attack_frequency(group),
-            target_preferences=self.analyze_targeting_patterns(group),
-            ransom_demands=self.analyze_ransom_economics(group),
-            success_rate=self.calculate_success_rate(group),
-            ttps_evolution=self.track_ttp_evolution(group),
-            infrastructure=self.map_infrastructure(group),
-            payment_tracking=self.track_payments(group)
-        )
+        // When
+        RuleEvaluationResult result = ruleEngine.evaluateEvents(events).await().indefinitely();
+        
+        // Then
+        assertThat(result.getScore()).isLessThan(0.3f);
+        assertThat(result.getMatchedRules()).isEmpty();
+    }
+    
+    private List<SecurityEvent> createMassFileEncryptionEvents() {
+        List<SecurityEvent> events = new ArrayList<>();
+        Instant baseTime = Instant.now();
+        
+        // Simulate rapid file modifications
+        for (int i = 0; i < 100; i++) {
+            SecurityEvent event = new SecurityEvent();
+            event.setAgentId("test-agent");
+            event.setEventType("file_operation");
+            event.setFileAction("modify");
+            event.setFilePath("/home/user/document" + i + ".encrypted");
+            event.setTimestamp(baseTime.plusSeconds(i));
+            events.add(event);
+        }
+        
+        return events;
+    }
+}
 ```
 
-### 5.2 Ransomware Economic Analysis
+### 10.2 Integration Testing
 
 ```python
-class RansomwareEconomicAnalyzer:
-    def __init__(self):
-        self.payment_tracker = CryptocurrencyPaymentTracker()
-        self.market_analyzer = RansomwareMarketAnalyzer()
+import pytest
+import asyncio
+from httpx import AsyncClient
+from fastapi.testclient import TestClient
+from kriir_ml.main import app
+
+class TestMLService:
+    
+    @pytest.fixture
+    def client(self):
+        return TestClient(app)
+    
+    def test_health_endpoint(self, client):
+        response = client.get("/health")
+        assert response.status_code == 200
+        assert response.json()["status"] == "healthy"
+    
+    def test_prediction_endpoint(self, client):
+        # Given
+        test_events = [
+            {
+                "id": "test-1",
+                "agent_id": "test-agent",
+                "timestamp": "2024-01-01T10:00:00Z",
+                "event_type": "file_operation",
+                "file_action": "modify",
+                "file_path": "/test/file.encrypted"
+            }
+        ]
         
-    def analyze_ransomware_economics(self, time_period):
-        """Analyze the economic aspects of ransomware operations"""
+        # When
+        response = client.post("/predict", json={
+            "events": test_events,
+            "agent_id": "test-agent"
+        })
         
-        # Track ransom payments
-        payments = self.payment_tracker.track_payments(time_period)
-        
-        # Analyze demand patterns
-        demand_analysis = self.analyze_ransom_demands(time_period)
-        
-        # Calculate profitability
-        profitability = self.calculate_group_profitability(time_period)
-        
-        return RansomwareEconomicReport(
-            total_payments=payments.total_amount,
-            payment_rate=payments.payment_percentage,
-            average_demand=demand_analysis.average,
-            median_demand=demand_analysis.median,
-            most_profitable_groups=profitability.top_groups,
-            market_trends=self.identify_market_trends(payments, demand_analysis),
-            cryptocurrency_analysis=self.analyze_crypto_usage(payments)
-        )
+        # Then
+        assert response.status_code == 200
+        result = response.json()
+        assert "threat_score" in result
+        assert 0 <= result["threat_score"] <= 1
+        assert "confidence" in result
+        assert "features" in result
 ```
 
----
+### 10.3 Performance Testing
 
-## 6. Ransomware Prevention Recommendations
-
-### 6.1 Automated Defense Planning
-
-```python
-class RansomwareDefensePlanner:
-    def __init__(self):
-        self.vulnerability_analyzer = VulnerabilityAnalyzer()
-        self.defense_optimizer = DefenseOptimizer()
-        self.cost_benefit_analyzer = CostBenefitAnalyzer()
+```java
+@QuarkusTest
+class PerformanceTest {
+    
+    @Test
+    void testEventIngestionThroughput() {
+        // Test that system can handle 1000 events/second
+        int eventsPerSecond = 1000;
+        int testDurationSeconds = 10;
         
-    def generate_defense_plan(self, organization_profile, risk_assessment):
-        """Generate comprehensive ransomware defense plan"""
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         
-        # Analyze current vulnerabilities
-        vulnerabilities = self.vulnerability_analyzer.scan_organization(
-            organization_profile
-        )
-        
-        # Prioritize vulnerabilities by ransomware risk
-        prioritized_vulns = self.prioritize_by_ransomware_risk(
-            vulnerabilities, risk_assessment
-        )
-        
-        # Generate defense recommendations
-        recommendations = []
-        for vuln in prioritized_vulns[:10]:  # Top 10 critical vulnerabilities
-            defense_options = self.defense_optimizer.generate_options(vuln)
-            cost_benefit = self.cost_benefit_analyzer.analyze(defense_options)
+        for (int second = 0; second < testDurationSeconds; second++) {
+            for (int event = 0; event < eventsPerSecond; event++) {
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                    // Send event to API
+                    sendTestEvent();
+                });
+                futures.add(future);
+            }
             
-            recommendations.append(DefenseRecommendation(
-                vulnerability=vuln,
-                recommended_action=cost_benefit.optimal_solution,
-                cost=cost_benefit.estimated_cost,
-                risk_reduction=cost_benefit.risk_reduction,
-                implementation_timeline=cost_benefit.timeline,
-                priority=vuln.ransomware_risk_score
-            ))
-            
-        return RansomwareDefensePlan(
-            organization=organization_profile.name,
-            current_risk_score=risk_assessment.overall_score,
-            projected_risk_reduction=self.calculate_plan_impact(recommendations),
-            recommendations=recommendations,
-            total_investment_required=sum(r.cost for r in recommendations),
-            implementation_phases=self.create_implementation_phases(recommendations)
-        )
-        
-    def prioritize_by_ransomware_risk(self, vulnerabilities, risk_assessment):
-        """Prioritize vulnerabilities specifically by ransomware exploitation risk"""
-        
-        for vuln in vulnerabilities:
-            # Calculate ransomware-specific risk score
-            vuln.ransomware_risk_score = self.calculate_ransomware_risk(
-                base_risk=vuln.cvss_score,
-                ransomware_exploitation_frequency=self.get_ransomware_exploitation_freq(vuln),
-                attack_path_criticality=self.assess_attack_path_criticality(vuln, risk_assessment),
-                lateral_movement_potential=self.assess_lateral_movement_risk(vuln)
-            )
-            
-        return sorted(vulnerabilities, key=lambda v: v.ransomware_risk_score, reverse=True)
-```
-
----
-
-## 7. Ransomware Insurance Integration
-
-### 7.1 Insurance Risk Scoring API
-
-```python
-class RansomwareInsuranceScoring:
-    def __init__(self):
-        self.risk_calculator = InsuranceRiskCalculator()
-        self.claims_predictor = ClaimsPredictor()
-        self.underwriting_analyzer = UnderwritingAnalyzer()
-        
-    def generate_insurance_score(self, organization_profile):
-        """Generate ransomware-specific insurance risk score"""
-        
-        # Core risk factors
-        risk_factors = self.analyze_risk_factors(organization_profile)
-        
-        # Claims likelihood prediction
-        claims_prediction = self.claims_predictor.predict_claim_probability(
-            organization_profile, time_horizon="12_months"
-        )
-        
-        # Expected loss calculation
-        expected_loss = self.calculate_expected_loss(
-            organization_profile, claims_prediction
-        )
-        
-        return InsuranceRiskScore(
-            overall_risk_score=risk_factors.composite_score,
-            claims_probability=claims_prediction.probability,
-            expected_annual_loss=expected_loss.annual_expectation,
-            confidence_interval=expected_loss.confidence_interval,
-            risk_factors_breakdown=risk_factors.breakdown,
-            underwriting_recommendations=self.generate_underwriting_recommendations(
-                risk_factors, claims_prediction
-            ),
-            premium_indicators=self.calculate_premium_indicators(
-                risk_factors, expected_loss
-            )
-        )
-```
-
----
-
-## 8. Success Metrics (Ransomware-Focused)
-
-### 8.1 Ransomware-Specific KPIs
-
-```python
-class RansomwareKPIs:
-    def __init__(self):
-        self.kpis = {
-            # Prediction Accuracy
-            "ransomware_prediction_accuracy_48h": {
-                "target": 0.92,  # 92% accuracy for 48h predictions
-                "measurement": "daily"
-            },
-            "false_positive_rate": {
-                "target": 0.02,  # <2% false positive rate
-                "measurement": "daily"
-            },
-            
-            # Prevention Effectiveness
-            "attacks_prevented": {
-                "target": 1000,  # 1000 prevented attacks per month
-                "measurement": "monthly"
-            },
-            "kill_chain_interruption_success": {
-                "target": 0.95,  # 95% successful interruption rate
-                "measurement": "per incident"
-            },
-            
-            # Response Time
-            "detection_to_response_time": {
-                "target": 300,   # <5 minutes
-                "measurement": "per incident"
-            },
-            "backup_trigger_time": {
-                "target": 60,    # <1 minute to trigger backup
-                "measurement": "per incident"
-            },
-            
-            # Business Impact
-            "customer_downtime_prevented": {
-                "target": 10000, # 10,000 hours of downtime prevented
-                "measurement": "monthly"
-            },
-            "economic_impact_prevented": {
-                "target": 50000000, # $50M in damages prevented
-                "measurement": "annual"
+            // Wait 1 second
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
+        
+        // Wait for all requests to complete
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+            .join();
+        
+        // Verify no errors and acceptable response times
+        // Implementation depends on specific metrics collection
+    }
+}
 ```
 
 ---
 
-## 9. Deployment Strategy
+## 11. Development Roadmap
 
-### 9.1 Ransomware-Specific Deployment
+### 11.1 Phase 1: MVP (Months 1-3)
 
-```yaml
-# Ransomware Defense Deployment Configuration
-ransomware_deployment:
-  
-  # Core Components
-  prediction_engine:
-    replicas: 5
-    resources:
-      cpu: "4"
-      memory: "8Gi"
-      gpu: "1" # For ML inference
-    
-  kill_chain_monitor:
-    replicas: 3
-    resources:
-      cpu: "2" 
-      memory: "4Gi"
-    real_time_processing: true
-    
-  automated_response:
-    replicas: 2
-    resources:
-      cpu: "1"
-      memory: "2Gi"
-    privileged_access: true # For system isolation
-    
-  # Data Processing
-  event_stream_processor:
-    kafka_partitions: 12
-    retention_hours: 168 # 1 week
-    processing_threads: 24
-    
-  # Storage
-  ransomware_intelligence_db:
-    storage_class: "high-performance-ssd" 
-    size: "500Gi"
-    backup_frequency: "hourly"
-    
-  # Monitoring
-  metrics:
-    - "ransomware_predictions_per_second"
-    - "kill_chain_detections_per_hour"  
-    - "automated_responses_triggered"
-    - "attacks_prevented_count"
-    
-  alerts:
-    - "high_confidence_ransomware_detection"
-    - "kill_chain_progression_detected"
-    - "automated_response_failure"
-```
+**Core Infrastructure:**
+- Basic agent with file/process monitoring (Go)
+- Quarkus event ingestion API
+- PostgreSQL event storage
+- Simple rule-based detection (5 rules)
+- Basic Python ML service
+- Docker deployment
 
----
+**Success Criteria:**
+- Process 100 events/second
+- 80% detection accuracy on test dataset
+- <10% false positive rate
+- Agent memory usage <150MB
 
-## 10. Roadmap (Ransomware Focus)
+### 11.2 Phase 2: Enhanced Detection (Months 4-6)
 
-### 10.1 Phase 1: Core Ransomware Defense (Months 1-6)
+**Advanced Features:**
+- Enhanced rule engine (15 behavioral rules)
+- Improved ML models with feature engineering
+- Real-time alerting system
+- Web dashboard (React)
+- Redis caching layer
+- Basic API authentication
 
-```yaml
-phase_1_ransomware_core:
-  objectives:
-    - "Build ransomware-specific prediction models"
-    - "Implement kill-chain monitoring"
-    - "Deploy automated response systems"
-    
-  deliverables:
-    ml_models:
-      - "Victim likelihood scoring (90%+ accuracy)"
-      - "Attack timeline prediction (48-72h window)"
-      - "Kill-chain stage detection"
-      
-    detection_systems:
-      - "Real-time ransomware activity monitoring"
-      - "Mass encryption detection"
-      - "Lateral movement tracking"
-      
-    response_automation:
-      - "Emergency backup triggering"
-      - "Network isolation automation"
-      - "Critical alert orchestration"
-      
-  success_metrics:
-    - "90% ransomware prediction accuracy"
-    - "95% kill-chain detection rate"
-    - "<5 minute response time"
-    - "100+ prevented attacks"
-```
+**Success Criteria:**
+- Process 500 events/second
+- 85% detection accuracy
+- <5% false positive rate
+- Support 1000+ concurrent agents
 
-### 10.2 Phase 2: Advanced Ransomware Intelligence (Months 7-12)
+### 11.3 Phase 3: Production Ready (Months 7-9)
 
-```yaml
-phase_2_advanced_intelligence:
-  objectives:
-    - "Implement ransomware group attribution"
-    - "Deploy economic impact modeling"
-    - "Launch insurance integration"
-    
-  deliverables:
-    attribution_engine:
-      - "Automated ransomware group identification"
-      - "TTP correlation and tracking"
-      - "Infrastructure mapping"
-      
-    economic_modeling:
-      - "Ransom payment tracking"
-      - "Market trend analysis"
-      - "Cost-benefit optimization"
-      
-    insurance_integration:
-      - "Risk scoring APIs"
-      - "Claims prediction models"
-      - "Underwriting recommendations"
-```
+**Enterprise Features:**
+- Kubernetes deployment
+- Comprehensive monitoring
+- Advanced security features
+- Multi-tenant support
+- API rate limiting
+- Community features (signature sharing)
+
+**Success Criteria:**
+- Process 1000 events/second
+- 85%+ detection accuracy
+- <5% false positive rate
+- 99.9% system uptime
+- Support 10,000+ agents
+
+### 11.4 Phase 4: Advanced Capabilities (Months 10-12)
+
+**Advanced Features:**
+- Advanced behavioral analysis
+- Custom rule engine for enterprises
+- Integration APIs for SIEM/SOAR
+- Advanced threat intelligence
+- Performance optimization
+
+**Success Criteria:**
+- Industry-leading accuracy benchmarks
+- Enterprise customer adoption
+- Active open source community
+- Sustainable business model
 
 ---
 
-## Conclusion
+## 12. Business Model and Pricing
 
-KRIIR v2.0 represents a paradigm shift in ransomware defense - from reactive recovery to predictive prevention. By focusing exclusively on the ransomware threat landscape, KRIIR delivers unparalleled accuracy in attack prediction and automated defense capabilities.
+### 12.1 Open Core Strategy
 
-**Revolutionary Capabilities:**
-- **92%+ Ransomware Prediction Accuracy** (48-72h advance warning)
-- **Real-time Kill-Chain Interruption** (<5 minute response)
-- **Automated Defense Orchestration** (backup, isolation, alerting)
-- **Economic Impact Prevention** ($50M+ damages prevented annually)
+**Open Source (Free Forever):**
+- Core detection engine
+- Basic behavioral rules
+- Agent software
+- Self-hosted deployment
+- Community support
+- API access (rate limited)
 
-**Success Vision:**
-KRIIR will become the global standard for ransomware defense, preventing thousands of attacks monthly and saving billions in economic damages while maintaining full transparency as an open-source solution.
+**Commercial Features:**
+- Advanced ML models
+- Enterprise dashboard
+- 24/7 support and SLA
+- Professional services
+- Compliance reporting
+- Priority feature requests
+- Enhanced security features
+
+### 12.2 Target Pricing
+
+**Community Edition:** Free
+- Up to 100 agents
+- Basic detection capabilities
+- Community support
+
+**Professional:** $5/agent/month
+- Up to 10,000 agents
+- Advanced ML models
+- Email support
+- Basic reporting
+
+**Enterprise:** $15/agent/month
+- Unlimited agents
+- Premium features
+- 24/7 support
+- Professional services
+- Custom SLAs
 
 ---
 
-**Built by Ossama Lafhel - [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)**
+## 13. Success Metrics
 
-*🤖 Generated with [Claude Code](https://claude.ai/code)*
+### 13.1 Technical KPIs
 
-*Co-Authored-By: Claude <noreply@anthropic.com>*
+**Detection Performance:**
+- Ransomware detection rate: >85%
+- False positive rate: <5%
+- Processing latency: <30 seconds
+- System availability: >99.9%
+
+**Scalability Metrics:**
+- Events processed/second: >1000
+- Concurrent agents supported: >10,000
+- API response time: <200ms
+- Agent resource usage: <5% CPU, <100MB RAM
+
+### 13.2 Business KPIs
+
+**Adoption Metrics:**
+- GitHub stars: 1,000 (Year 1) → 10,000 (Year 3)
+- Active deployments: 100 (Year 1) → 10,000 (Year 3)
+- Community contributors: 10 (Year 1) → 100 (Year 3)
+
+**Revenue Metrics:**
+- Enterprise customers: 0 (Year 1) → 100 (Year 3)
+- Annual recurring revenue: $0 (Year 1) → $5M (Year 3)
+- Monthly growth rate: >20%
+
+### 13.3 Community Metrics
+
+**Open Source Health:**
+- Active contributors per month: >10
+- Issues resolved per month: >50
+- Documentation completeness: >90%
+- Test coverage: >80%
+
+---
+
+This comprehensive specification provides a realistic foundation for building KRIIR as an open-source ransomware detection platform. The architecture balances technical ambition with practical implementation constraints, focusing on achievable goals while maintaining the vision of democratizing enterprise-grade cybersecurity through open source technology.
