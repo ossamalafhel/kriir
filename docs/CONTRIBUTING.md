@@ -52,11 +52,11 @@ We pledge to make participation in our ransomware defense project a harassment-f
 # Fork the repository on GitHub
 
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/reactive-transactional.git
-cd reactive-transactional
+git clone https://github.com/YOUR_USERNAME/cyberisk-open-platform.git
+cd cyberisk-open-platform
 
 # Add upstream
-git remote add upstream https://github.com/ossamalafhel/reactive-transactional.git
+git remote add upstream https://github.com/ossamalafhel/cyberisk-open-platform.git
 
 # Configure GPG signing
 git config commit.gpgsign true
@@ -70,12 +70,12 @@ git config commit.gpgsign true
 # Start development environment with security services
 docker-compose -f docker-compose.dev.yml up -d
 
-# Backend (with hot reload)
-cd server
+# Backend API (with hot reload)
+cd api
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
-# Frontend (with hot reload)
-cd front
+# Frontend Dashboard (with hot reload)
+cd dashboard
 npm install
 npm start
 ```

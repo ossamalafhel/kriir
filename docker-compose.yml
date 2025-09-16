@@ -2,33 +2,33 @@ version: '3.8'
 
 services:
   postgis:
-    container_name: reactive-transactional-postgis
+    container_name: cyberisk-postgis
     image: postgis/postgis:15-3.4-alpine
     restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: mobility_db
-      POSTGRES_USER: rci
-      POSTGRES_PASSWORD: rci
+      POSTGRES_DB: cop_db
+      POSTGRES_USER: cop
+      POSTGRES_PASSWORD: cop
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     volumes:
       - postgis_data:/var/lib/postgresql/data
-      - ./server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./server/src/main/resources/function_notify_event.sql:/docker-entrypoint-initdb.d/02-functions.sql
+      - ./api/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./api/src/main/resources/function_notify_event.sql:/docker-entrypoint-initdb.d/02-functions.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rci -d mobility_db"]
+      test: ["CMD-SHELL", "pg_isready -U cop -d cop_db"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
     networks:
-      - mobility-network
+      - cyberisk-network
 
-  server:
-    container_name: reactive-transactional-server
+  api:
+    container_name: cyberisk-api
     build:
-      context: ./server
+      context: ./api
       dockerfile: Dockerfile
       args:
         - BUILD_DATE=${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
@@ -38,9 +38,9 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgis:5432/mobility_db
-      - SPRING_DATASOURCE_USERNAME=rci
-      - SPRING_DATASOURCE_PASSWORD=rci
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgis:5432/cop_db
+      - SPRING_DATASOURCE_USERNAME=cop
+      - SPRING_DATASOURCE_PASSWORD=cop
       - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
       postgis:
@@ -52,16 +52,16 @@ services:
       retries: 5
       start_period: 60s
     networks:
-      - mobility-network
+      - cyberisk-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.server.rule=PathPrefix(`/api`)"
-      - "traefik.http.services.server.loadbalancer.server.port=8080"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
 
-  front:
-    container_name: reactive-transactional-front
+  dashboard:
+    container_name: cyberisk-dashboard
     build:
-      context: ./front
+      context: ./dashboard
       dockerfile: Dockerfile
       args:
         - BUILD_DATE=${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
@@ -70,7 +70,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      server:
+      api:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
@@ -79,18 +79,18 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - mobility-network
+      - cyberisk-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.front.rule=PathPrefix(`/`)"
-      - "traefik.http.services.front.loadbalancer.server.port=3000"
+      - "traefik.http.routers.dashboard.rule=PathPrefix(`/`)"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=3000"
 
 volumes:
   postgis_data:
     driver: local
 
 networks:
-  mobility-network:
+  cyberisk-network:
     driver: bridge
     ipam:
       config:

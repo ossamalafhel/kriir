@@ -14,14 +14,14 @@ The world's most advanced open-source ransomware prediction and prevention platf
 - **Java 17** or higher
 - **Maven 3.6.3** or higher  
 - **Docker** for PostgreSQL database
-- **Node.js 18+** for frontend (optional)
+- **Node.js 18+** for dashboard (optional)
 
 ### Database Setup
 
 Launch PostgreSQL with PostGIS extension:
 
 ```bash
-cd server
+cd api
 docker run --name cop-db -p 5432:5432 \
   -e "POSTGRES_USER=cop" \
   -e "POSTGRES_PASSWORD=cop" \
@@ -35,7 +35,7 @@ docker run --name cop-db -p 5432:5432 \
 # Build the application
 mvn clean install
 
-# Run the server
+# Run the API
 mvn spring-boot:run
 ```
 

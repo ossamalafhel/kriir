@@ -3,13 +3,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.cyberisk</groupId>
-    <artifactId>cop-platform</artifactId>
+    <groupId>org.cyberisk</groupId>
+    <artifactId>cyberisk-open-platform</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>COP - CyberRisk Open Platform</name>
-    <description>Open-source geospatial security intelligence platform for cyberrisk management</description>
+    <name>CyberRisk Open Platform</name>
+    <description>Open-source ransomware prediction and prevention platform with geospatial intelligence</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>

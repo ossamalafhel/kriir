@@ -33,8 +33,8 @@ COP is a modern, reactive platform designed for cyber risk management and securi
 
 ```bash
 # Clone the repository
-git clone https://github.com/ossamalafhel/reactive-transactional.git
-cd reactive-transactional
+git clone https://github.com/ossamalafhel/cyberisk-open-platform.git
+cd cyberisk-open-platform
 
 # Start the platform
 docker-compose up -d
@@ -48,12 +48,12 @@ docker-compose up -d
 ### 💻 Local Development
 
 ```bash
-# Backend
-cd server
+# Backend API
+cd api
 ./mvnw spring-boot:run
 
-# Frontend
-cd front
+# Frontend Dashboard
+cd dashboard
 npm install
 npm start
 ```
@@ -126,14 +126,14 @@ services:
       - postgres_data:/var/lib/postgresql/data
     
   backend:
-    build: ./server
+    build: ./api
     depends_on:
       - postgis
     environment:
       SPRING_PROFILES_ACTIVE: prod
     
   frontend:
-    build: ./front
+    build: ./dashboard
     depends_on:
       - backend
 ```

@@ -124,8 +124,8 @@ cop:
 
 ```bash
 # Clone repository
-git clone https://github.com/ossamalafhel/reactive-transactional.git
-cd reactive-transactional
+git clone https://github.com/ossamalafhel/cyberisk-open-platform.git
+cd cyberisk-open-platform
 
 # Create environment file
 cp .env.example .env
@@ -192,7 +192,7 @@ services:
 
   backend:
     build: 
-      context: ./server
+      context: ./api
       dockerfile: Dockerfile
     depends_on:
       postgres:
@@ -224,7 +224,7 @@ services:
 
   frontend:
     build:
-      context: ./front
+      context: ./dashboard
       dockerfile: Dockerfile
     depends_on:
       - backend
