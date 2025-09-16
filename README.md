@@ -62,15 +62,19 @@ npm start
 
 COP follows a reactive, event-driven architecture optimized for real-time security monitoring:
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React 18      │    │  Spring Boot 3  │    │  PostgreSQL +  │
-│   Frontend      │◄──►│  WebFlux        │◄──►│  PostGIS       │
-│                 │SSE │                 │    │                │
-│ • Asset Maps    │    │ • R2DBC        │    │ • Geospatial   │
-│ • Incident Dash │    │ • Reactive     │    │ • Real-time    │
-│ • Risk Analytics│    │ • REST APIs    │    │ • Notifications│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+```mermaid
+graph LR
+    A[React 18 Frontend<br/>• Asset Maps<br/>• Incident Dashboard<br/>• Risk Analytics] 
+    B[Spring Boot 3 WebFlux<br/>• R2DBC<br/>• Reactive<br/>• REST APIs]
+    C[PostgreSQL + PostGIS<br/>• Geospatial<br/>• Real-time<br/>• Notifications]
+    
+    A -.->|SSE| B
+    A <-->|HTTP/WebSocket| B
+    B <-->|R2DBC| C
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style B fill:#e8f5e8,stroke:#388e3c,stroke-width:2px  
+    style C fill:#fff3e0,stroke:#f57c00,stroke-width:2px
 ```
 
 ## 📊 Core Entities
