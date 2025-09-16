@@ -1,6 +1,6 @@
-# Contributing Guide
+# Contributing to COP - CyberRisk Open Platform
 
-Thank you for your interest in contributing to the Reactive Transactional Mobility Platform! This guide will help you get started with contributing to the project.
+Thank you for your interest in contributing to the COP ransomware defense platform! This guide will help you contribute to making organizations safer from ransomware attacks.
 
 ## Table of Contents
 
@@ -10,36 +10,56 @@ Thank you for your interest in contributing to the Reactive Transactional Mobili
 4. [Contributing Process](#contributing-process)
 5. [Coding Standards](#coding-standards)
 6. [Testing Guidelines](#testing-guidelines)
-7. [Documentation Standards](#documentation-standards)
-8. [Pull Request Process](#pull-request-process)
-9. [Issue Reporting](#issue-reporting)
+7. [Security Considerations](#security-considerations)
+8. [ML Model Contributions](#ml-model-contributions)
+9. [Documentation Standards](#documentation-standards)
+10. [Pull Request Process](#pull-request-process)
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code. Please report unacceptable behavior to contact@rcimobility.com.
+This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code. Please report unacceptable behavior to [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com).
+
+### Our Pledge
+
+We pledge to make participation in our ransomware defense project a harassment-free experience for everyone, with special emphasis on:
+- Collaborative security research
+- Responsible disclosure practices
+- Ethical AI development
+- Privacy-preserving contributions
 
 ## Getting Started
 
 ### Prerequisites
 
-- Java 17+
-- Node.js 18+
-- Docker & Docker Compose
-- Git
-- Your favorite IDE (IntelliJ IDEA, VS Code recommended)
+- **Java 17+** (OpenJDK recommended)
+- **Maven 3.6.3+**
+- **Docker & Docker Compose**
+- **Node.js 18+** (for frontend)
+- **PostgreSQL 15** with PostGIS 3.4
+- **Python 3.9+** (for ML contributions)
+- **Git** with GPG signing (recommended)
+
+### Security Requirements
+
+- Enable 2FA on your GitHub account
+- Sign commits with GPG
+- Never commit secrets or credentials
+- Follow secure coding practices
 
 ### Fork and Clone
 
-1. Fork the repository on GitHub
-2. Clone your fork locally:
 ```bash
+# Fork the repository on GitHub
+
+# Clone your fork
 git clone https://github.com/YOUR_USERNAME/reactive-transactional.git
 cd reactive-transactional
-```
 
-3. Add the upstream repository:
-```bash
-git remote add upstream https://github.com/original-org/reactive-transactional.git
+# Add upstream
+git remote add upstream https://github.com/ossamalafhel/reactive-transactional.git
+
+# Configure GPG signing
+git config commit.gpgsign true
 ```
 
 ## Development Setup
@@ -47,12 +67,17 @@ git remote add upstream https://github.com/original-org/reactive-transactional.g
 ### Quick Start
 
 ```bash
-# Start development environment
+# Start development environment with security services
 docker-compose -f docker-compose.dev.yml up -d
 
-# Or run locally
-cd server && ./mvnw spring-boot:run
-cd front && npm start
+# Backend (with hot reload)
+cd server
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Frontend (with hot reload)
+cd front
+npm install
+npm start
 ```
 
 ### IDE Setup
@@ -60,38 +85,43 @@ cd front && npm start
 #### IntelliJ IDEA
 
 1. **Import Project**:
-   - Open IntelliJ IDEA
-   - Import the project as Maven project
+   - Import as Maven project
    - Enable annotation processing
+   - Configure Java 17 SDK
 
-2. **Code Style**:
-   - Go to File → Settings → Editor → Code Style
-   - Import the provided `intellij-java-style.xml`
+2. **Plugins**:
+   - Spring Boot
+   - Docker
+   - SonarLint (security analysis)
+   - CheckStyle
 
-3. **Plugins**:
-   - Lombok Plugin
-   - Spring Boot Assistant
-   - Docker Plugin
-   - MapStruct Support
+3. **Security Analysis**:
+   - Enable OWASP Dependency Check
+   - Configure SpotBugs for security
 
 #### VS Code
 
 1. **Extensions**:
-   - Extension Pack for Java
+   - Java Extension Pack
    - Spring Boot Extension Pack
-   - ES7+ React/Redux/React-Native snippets
-   - Prettier - Code formatter
+   - Docker
    - ESLint
+   - GitLens
+   - SonarLint
 
-2. **Settings**:
+2. **Settings** (.vscode/settings.json):
 ```json
 {
-  "java.configuration.updateBuildConfiguration": "interactive",
-  "java.format.settings.url": "./java-style.xml",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.compile.nullAnalysis.mode": "automatic",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": true,
-    "source.fixAll.eslint": true
+    "source.organizeImports": true
+  },
+  "sonarlint.rules": {
+    "java:S5344": {
+      "level": "on"
+    }
   }
 }
 ```
@@ -100,607 +130,511 @@ cd front && npm start
 
 ### 1. Choose an Issue
 
-- Look for issues labeled `good first issue` for beginners
-- Check `help wanted` for issues needing contributors
-- Comment on the issue to get it assigned to you
+**Priority Areas**:
+- 🔴 **Critical**: Ransomware detection algorithms
+- 🟡 **High**: Kill-chain monitoring features
+- 🟢 **Normal**: UI/UX improvements
+- 🔵 **Research**: ML model enhancements
 
-### 2. Create a Feature Branch
+Look for labels:
+- `ransomware-defense` - Core defense features
+- `ml-models` - Machine learning improvements
+- `security` - Security enhancements
+- `good-first-issue` - Beginner-friendly
+
+### 2. Create a Branch
 
 ```bash
 # Update your fork
 git fetch upstream
 git checkout main
-git merge upstream/main
+git rebase upstream/main
 
 # Create feature branch
-git checkout -b feature/your-feature-name
+git checkout -b feature/ransomware-detection-enhancement
 # or
-git checkout -b bugfix/issue-number
+git checkout -b fix/killchain-false-positive
+# or
+git checkout -b ml/improve-prediction-accuracy
 ```
 
-### 3. Make Your Changes
+### 3. Development Guidelines
 
-- Follow the coding standards
-- Write tests for new functionality
-- Update documentation as needed
-- Keep commits focused and atomic
+**Security First**:
+- Validate all inputs
+- Use parameterized queries
+- Implement proper authentication
+- Follow OWASP guidelines
 
-### 4. Test Your Changes
+**Performance**:
+- Real-time processing (<100ms)
+- Efficient memory usage
+- Reactive patterns
+
+### 4. Testing
 
 ```bash
-# Run backend tests
-cd server
-./mvnw test
+# Run all tests
+mvn clean test
 
-# Run frontend tests
-cd front
-npm test
+# Run with coverage (must be 100%)
+mvn clean test jacoco:report
 
-# Run integration tests
-docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+# Security tests
+mvn verify -Psecurity
+
+# Performance tests
+mvn verify -Pperformance
 ```
-
-### 5. Commit Your Changes
-
-Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
-
-```bash
-git commit -m "feat: add real-time user tracking"
-git commit -m "fix: resolve database connection timeout"
-git commit -m "docs: update API documentation"
-git commit -m "test: add integration tests for car service"
-```
-
-**Commit Types**:
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc.)
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
 
 ## Coding Standards
 
-### Backend (Java/Spring Boot)
+### Java/Spring Boot
 
-#### Code Style
-
-- Use Google Java Style Guide
-- Indent with 2 spaces
-- Maximum line length: 100 characters
-- Use meaningful variable and method names
-
-#### Example:
+#### Security-Focused Patterns
 
 ```java
 @RestController
-@RequestMapping("/api/cars")
+@RequestMapping("/api/v1/predictions")
+@SecurityRequirement(name = "bearer-key")
 @Validated
-public class CarController {
+public class RansomwarePredictionController {
 
-  private final CarService carService;
+  private final PredictionService predictionService;
+  private final AuditService auditService;
 
-  public CarController(CarService carService) {
-    this.carService = carService;
-  }
-
-  @GetMapping
-  public Flux<Car> getAllCars() {
-    return carService.findAll();
-  }
-
-  @PostMapping
-  public Mono<Car> createCar(@Valid @RequestBody CreateCarRequest request) {
-    return carService.create(request);
-  }
-}
-```
-
-#### Best Practices
-
-- Use constructor injection over field injection
-- Prefer immutable objects with Lombok `@Value`
-- Use reactive types (Mono/Flux) consistently
-- Handle errors with proper exception handling
-- Add comprehensive JavaDoc for public methods
-
-```java
-/**
- * Creates a new car with the provided coordinates.
- *
- * @param request the car creation request containing coordinates
- * @return a Mono containing the created car
- * @throws ValidationException if coordinates are invalid
- */
-public Mono<Car> createCar(CreateCarRequest request) {
-  return validateCoordinates(request)
-      .then(carRepository.save(mapToEntity(request)))
-      .onErrorMap(DataIntegrityViolationException.class, 
-          ex -> new BusinessException("Car already exists"));
-}
-```
-
-### Frontend (React/TypeScript)
-
-#### Code Style
-
-- Use 2 spaces for indentation
-- Use semicolons
-- Use single quotes for strings
-- Maximum line length: 80 characters
-
-#### Component Structure
-
-```javascript
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import PropTypes from 'prop-types';
-
-import { selectCarsData } from '../store/mobilitySlice';
-import { Marker } from './Marker';
-
-/**
- * Interactive map component for displaying real-time vehicle locations.
- */
-function InteractiveMap({ width, height, onMapClick }) {
-  const dispatch = useDispatch();
-  const carsData = useSelector(selectCarsData);
-  
-  const [viewport, setViewport] = useState({
-    latitude: 48.092971,
-    longitude: 7.06064,
-    zoom: 13,
-  });
-
-  const handleViewportChange = useCallback((newViewport) => {
-    setViewport(newViewport);
-  }, []);
-
-  useEffect(() => {
-    // Component logic here
-  }, [carsData]);
-
-  return (
-    <div className="interactive-map">
-      {/* JSX content */}
-    </div>
-  );
-}
-
-InteractiveMap.propTypes = {
-  width: PropTypes.number.isRequired,
-  height: PropTypes.number.isRequired,
-  onMapClick: PropTypes.func,
-};
-
-InteractiveMap.defaultProps = {
-  onMapClick: () => {},
-};
-
-export default InteractiveMap;
-```
-
-#### Best Practices
-
-- Use functional components with hooks
-- Memoize expensive calculations with `useMemo`
-- Use `useCallback` for event handlers passed to child components
-- Extract custom hooks for reusable logic
-- Use TypeScript for type safety (when applicable)
-
-### Database
-
-#### Migration Scripts
-
-- Use Flyway migration naming: `V1.0.0__Create_tables.sql`
-- Always include rollback scripts
-- Test migrations on sample data
-
-#### Example Migration
-
-```sql
--- V1.1.0__Add_car_status.sql
-ALTER TABLE car ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE';
-CREATE INDEX idx_car_status ON car (status);
-
--- Add comment
-COMMENT ON COLUMN car.status IS 'Current status of the car: ACTIVE, INACTIVE, MAINTENANCE';
-```
-
-## Testing Guidelines
-
-### Backend Testing
-
-#### Unit Tests
-
-```java
-@ExtendWith(MockitoExtension.class)
-class CarServiceTest {
-
-  @Mock
-  private CarRepository carRepository;
-
-  @InjectMocks
-  private CarService carService;
-
-  @Test
-  @DisplayName("Should create car with valid coordinates")
-  void shouldCreateCarWithValidCoordinates() {
-    // Given
-    CreateCarRequest request = CreateCarRequest.builder()
-        .x(7.06064)
-        .y(48.092971)
-        .build();
+  @PostMapping("/ransomware-risk")
+  @PreAuthorize("hasRole('ANALYST') or hasRole('ADMIN')")
+  @Timed(value = "prediction.ransomware.risk")
+  public Mono<RiskPredictionResponse> predictRisk(
+      @Valid @RequestBody RiskPredictionRequest request,
+      Authentication auth) {
     
-    Car expectedCar = Car.builder()
-        .id("test-id")
-        .x(7.06064)
-        .y(48.092971)
-        .build();
-
-    when(carRepository.save(any(Car.class)))
-        .thenReturn(Mono.just(expectedCar));
-
-    // When
-    StepVerifier.create(carService.create(request))
-        // Then
-        .expectNext(expectedCar)
-        .verifyComplete();
+    return auditService.logAccess("PREDICT_RISK", auth)
+        .then(validateRequest(request))
+        .flatMap(predictionService::predictRansomwareRisk)
+        .doOnSuccess(result -> metricsService.recordPrediction(result))
+        .onErrorMap(this::handlePredictionError);
   }
 
-  @Test
-  @DisplayName("Should throw exception for invalid coordinates")
-  void shouldThrowExceptionForInvalidCoordinates() {
-    // Given
-    CreateCarRequest request = CreateCarRequest.builder()
-        .x(Double.NaN)
-        .y(48.092971)
-        .build();
-
-    // When & Then
-    StepVerifier.create(carService.create(request))
-        .expectError(ValidationException.class)
-        .verify();
+  private Mono<RiskPredictionRequest> validateRequest(RiskPredictionRequest request) {
+    return Mono.just(request)
+        .filter(r -> r.getOrganization() != null)
+        .switchIfEmpty(Mono.error(new ValidationException("Organization required")));
   }
 }
 ```
 
-#### Integration Tests
+#### Reactive Service Pattern
 
 ```java
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb",
-    "spring.jpa.hibernate.ddl-auto=create-drop"
-})
-class CarControllerIntegrationTest {
+@Service
+@Slf4j
+public class KillChainMonitorService {
 
-  @Autowired
-  private WebTestClient webTestClient;
+  private final KillChainDetector detector;
+  private final DefenseOrchestrator orchestrator;
+  private final AlertingService alertingService;
 
-  @Test
-  void shouldCreateAndRetrieveCar() {
-    CreateCarRequest request = CreateCarRequest.builder()
-        .x(7.06064)
-        .y(48.092971)
-        .build();
-
-    webTestClient.post()
-        .uri("/cars")
-        .bodyValue(request)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Car.class)
-        .value(car -> {
-          assertThat(car.getX()).isEqualTo(7.06064);
-          assertThat(car.getY()).isEqualTo(48.092971);
-          assertThat(car.getId()).isNotNull();
+  public Flux<KillChainEvent> monitorKillChain(String organizationId) {
+    return detector.detectStages(organizationId)
+        .filter(event -> event.getConfidence() > 0.7)
+        .doOnNext(event -> log.warn("Kill-chain stage detected: {}", event))
+        .flatMap(event -> orchestrator.initiateDefense(event)
+            .thenReturn(event))
+        .doOnNext(alertingService::sendCriticalAlert)
+        .onErrorResume(error -> {
+          log.error("Kill-chain monitoring error", error);
+          return Flux.empty();
         });
   }
 }
 ```
 
-### Frontend Testing
+### Frontend (React/TypeScript)
 
-#### Component Tests
+#### Security Component Example
 
-```javascript
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
+```typescript
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { RansomwareRiskGauge } from './RansomwareRiskGauge';
+import { encryptSensitiveData } from '../utils/crypto';
 
-import { mobilitySlice } from '../store/mobilitySlice';
-import InteractiveMap from './InteractiveMap';
+interface RansomwareDashboardProps {
+  organizationId: string;
+}
 
-const createTestStore = (initialState = {}) => {
-  return configureStore({
-    reducer: {
-      mobility: mobilitySlice.reducer,
-    },
-    preloadedState: { mobility: initialState },
-  });
+export const RansomwareDashboard: React.FC<RansomwareDashboardProps> = ({ 
+  organizationId 
+}) => {
+  const { user, hasPermission } = useAuth();
+  const [riskData, setRiskData] = useState<RiskData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!hasPermission('VIEW_RISK_DATA')) {
+      console.error('Insufficient permissions');
+      return;
+    }
+
+    const fetchRiskData = async () => {
+      try {
+        const response = await secureApi.get(`/predictions/ransomware-risk`, {
+          params: { organizationId: encryptSensitiveData(organizationId) }
+        });
+        setRiskData(response.data);
+      } catch (error) {
+        console.error('Failed to fetch risk data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRiskData();
+  }, [organizationId, hasPermission]);
+
+  if (!hasPermission('VIEW_RISK_DATA')) {
+    return <AccessDenied />;
+  }
+
+  return (
+    <div className="ransomware-dashboard">
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
+        <RansomwareRiskGauge 
+          riskScore={riskData?.riskScore} 
+          confidence={riskData?.confidence}
+        />
+      )}
+    </div>
+  );
 };
-
-describe('InteractiveMap', () => {
-  it('renders without crashing', () => {
-    const store = createTestStore();
-    render(
-      <Provider store={store}>
-        <InteractiveMap width={800} height={600} />
-      </Provider>
-    );
-    
-    expect(screen.getByTestId('interactive-map')).toBeInTheDocument();
-  });
-
-  it('displays car markers when data is provided', () => {
-    const carsData = { id: 'car-1', x: 7.06064, y: 48.092971 };
-    const store = createTestStore({ carsData });
-    
-    render(
-      <Provider store={store}>
-        <InteractiveMap width={800} height={600} />
-      </Provider>
-    );
-    
-    expect(screen.getByTestId('car-marker')).toBeInTheDocument();
-  });
-});
 ```
 
-#### Redux Tests
+### Database Standards
 
-```javascript
-import { configureStore } from '@reduxjs/toolkit';
-import { mobilitySlice, updateCars, updateUsers } from './mobilitySlice';
+#### Secure Migration Example
 
-describe('mobilitySlice', () => {
-  let store;
+```sql
+-- V2.0.0__Add_ransomware_predictions_table.sql
 
-  beforeEach(() => {
-    store = configureStore({
-      reducer: { mobility: mobilitySlice.reducer },
-    });
-  });
-
-  it('should update cars data', () => {
-    const carData = { id: 'car-1', x: 7.06064, y: 48.092971 };
+CREATE TABLE ransomware_predictions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id),
+    risk_score DECIMAL(3,1) NOT NULL CHECK (risk_score >= 0 AND risk_score <= 10),
+    confidence DECIMAL(3,2) NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+    attack_probability JSONB NOT NULL,
+    vulnerable_paths JSONB,
+    prediction_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    model_version VARCHAR(20) NOT NULL,
+    encrypted_metadata BYTEA, -- For sensitive data
     
-    store.dispatch(updateCars(carData));
-    
-    const state = store.getState().mobility;
-    expect(state.carsData).toEqual(carData);
-    expect(state.loading).toBe(false);
-  });
-});
+    CONSTRAINT valid_prediction CHECK (
+        jsonb_typeof(attack_probability) = 'object' AND
+        attack_probability ? 'next24Hours' AND
+        attack_probability ? 'next72Hours'
+    )
+);
+
+-- Security indexes
+CREATE INDEX idx_predictions_org_time ON ransomware_predictions(organization_id, prediction_timestamp DESC);
+CREATE INDEX idx_predictions_high_risk ON ransomware_predictions(risk_score) WHERE risk_score > 7;
+
+-- Row-level security
+ALTER TABLE ransomware_predictions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY org_isolation ON ransomware_predictions
+    FOR ALL
+    USING (organization_id = current_setting('app.current_org_id')::uuid);
+
+-- Audit trigger
+CREATE TRIGGER audit_predictions
+    AFTER INSERT OR UPDATE ON ransomware_predictions
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
 ```
 
-### Test Coverage Requirements
+## Testing Guidelines
 
-- **Backend**: Minimum 80% line coverage
-- **Frontend**: Minimum 70% line coverage
-- **Critical paths**: 100% coverage required
-
-## Documentation Standards
-
-### Code Documentation
-
-#### JavaDoc for Java
+### Security Testing
 
 ```java
-/**
- * Service for managing car entities and their real-time location updates.
- * 
- * <p>This service provides reactive operations for creating, updating, and
- * querying car locations. All operations are non-blocking and return
- * reactive types.
- *
- * @author John Doe
- * @since 1.0.0
- */
-@Service
-public class CarService {
+@SpringBootTest
+@AutoConfigureMockMvc
+class SecurityTest {
 
-  /**
-   * Creates a new car with the specified coordinates.
-   *
-   * @param request the car creation request containing coordinates
-   * @return a {@link Mono} containing the created car
-   * @throws ValidationException if the coordinates are invalid
-   * @throws BusinessException if a car with the same ID already exists
-   */
-  public Mono<Car> create(CreateCarRequest request) {
-    // Implementation
+  @Test
+  @DisplayName("Should reject unauthenticated prediction requests")
+  void shouldRejectUnauthenticated() throws Exception {
+    mockMvc.perform(post("/api/v1/predictions/ransomware-risk")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validRequest()))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockUser(roles = "USER")
+  @DisplayName("Should reject insufficient permissions")
+  void shouldRejectInsufficientPermissions() throws Exception {
+    mockMvc.perform(post("/api/v1/predictions/ransomware-risk")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validRequest()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @DisplayName("Should prevent SQL injection attempts")
+  void shouldPreventSqlInjection() throws Exception {
+    String maliciousInput = "'; DROP TABLE assets; --";
+    
+    AssetSearchRequest request = new AssetSearchRequest();
+    request.setName(maliciousInput);
+    
+    mockMvc.perform(post("/api/v1/assets/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Invalid input"));
   }
 }
 ```
 
-#### JSDoc for JavaScript
+### Performance Testing
 
-```javascript
-/**
- * Interactive map component for displaying real-time vehicle tracking.
- * 
- * @component
- * @param {Object} props - Component props
- * @param {number} props.width - Map width in pixels
- * @param {number} props.height - Map height in pixels
- * @param {Function} [props.onMapClick] - Callback for map click events
- * @returns {JSX.Element} The rendered map component
- * 
- * @example
- * <InteractiveMap 
- *   width={800} 
- *   height={600} 
- *   onMapClick={(coords) => console.log(coords)}
- * />
- */
-function InteractiveMap({ width, height, onMapClick = () => {} }) {
-  // Component implementation
+```java
+@Test
+@DisplayName("Prediction should complete within 100ms")
+void predictionPerformance() {
+    StepVerifier.create(predictionService.predictRansomwareRisk(testRequest))
+        .expectNextMatches(response -> response.getRiskScore() > 0)
+        .expectComplete()
+        .verify(Duration.ofMillis(100));
 }
 ```
 
+## Security Considerations
+
+### Threat Model
+
+1. **Data Protection**:
+   - Encrypt sensitive prediction data
+   - Use field-level encryption for PII
+   - Implement data retention policies
+
+2. **Access Control**:
+   - Role-based permissions
+   - API rate limiting
+   - Geographic restrictions
+
+3. **Audit Trail**:
+   - Log all predictions
+   - Track model usage
+   - Monitor for anomalies
+
+### Secure Coding Checklist
+
+- [ ] Input validation on all endpoints
+- [ ] Output encoding for XSS prevention
+- [ ] CSRF protection enabled
+- [ ] SQL injection prevention
+- [ ] Secure session management
+- [ ] Error messages don't leak information
+- [ ] Secrets stored securely
+- [ ] Dependencies scanned for vulnerabilities
+
+## ML Model Contributions
+
+### Model Submission Process
+
+1. **Model Requirements**:
+   - Accuracy: >90% on test set
+   - False positive rate: <5%
+   - Inference time: <50ms
+   - Explainable predictions
+
+2. **Submission Format**:
+```python
+# models/ransomware_predictor_v3.py
+class RansomwarePredictor:
+    """
+    Ransomware prediction model using gradient boosting.
+    
+    Accuracy: 92.3% on test set
+    FPR: 3.2%
+    Average inference: 35ms
+    """
+    
+    def __init__(self, model_path: str):
+        self.model = self._load_model(model_path)
+        self.feature_importance = self._calculate_importance()
+    
+    def predict(self, features: Dict[str, Any]) -> PredictionResult:
+        # Validate input features
+        validated = self._validate_features(features)
+        
+        # Make prediction
+        risk_score = self.model.predict_proba(validated)[0][1]
+        
+        # Generate explanation
+        explanation = self._explain_prediction(validated, risk_score)
+        
+        return PredictionResult(
+            risk_score=risk_score,
+            confidence=self._calculate_confidence(validated),
+            explanation=explanation,
+            contributing_factors=self._get_top_factors(validated)
+        )
+```
+
+3. **Testing Requirements**:
+   - Unit tests for all methods
+   - Performance benchmarks
+   - Bias testing
+   - Adversarial robustness
+
+## Documentation Standards
+
 ### API Documentation
 
-Use OpenAPI annotations:
+```java
+/**
+ * Predicts ransomware attack probability for an organization.
+ * 
+ * @param request Organization details and security profile
+ * @return Risk prediction with confidence scores and recommendations
+ * 
+ * @throws ValidationException if request data is invalid
+ * @throws InsufficientDataException if not enough historical data
+ * @throws ModelException if prediction model fails
+ * 
+ * @security Requires ANALYST or ADMIN role
+ * @rateLimit 100 requests per minute per organization
+ * 
+ * @example
+ * POST /api/v1/predictions/ransomware-risk
+ * {
+ *   "organization": {
+ *     "name": "Acme Corp",
+ *     "industry": "healthcare",
+ *     "size": "medium"
+ *   },
+ *   "timeHorizon": "PT72H"
+ * }
+ */
+@PostMapping("/ransomware-risk")
+public Mono<RiskPredictionResponse> predictRisk(@Valid @RequestBody RiskPredictionRequest request);
+```
+
+### Code Comments
 
 ```java
-@Operation(
-    summary = "Create a new car",
-    description = "Creates a new car entity with the provided coordinates",
-    responses = {
-        @ApiResponse(responseCode = "200", description = "Car created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-    }
-)
-@PostMapping
-public Mono<Car> createCar(
-    @Parameter(description = "Car creation request", required = true)
-    @Valid @RequestBody CreateCarRequest request) {
-  return carService.create(request);
+// SECURITY: Rate limit to prevent model abuse
+@RateLimiter(name = "prediction-api")
+public Mono<PredictionResult> predict(PredictionRequest request) {
+    return Mono.just(request)
+        // VALIDATION: Ensure all required fields present
+        .filter(this::isValid)
+        // SECURITY: Check organization permissions
+        .filterWhen(this::hasPermission)
+        // PERFORMANCE: Cache similar predictions
+        .flatMap(this::checkCache)
+        // ML: Run through prediction pipeline
+        .switchIfEmpty(runPrediction(request))
+        // AUDIT: Log all predictions for compliance
+        .doOnNext(this::auditLog);
 }
 ```
 
 ## Pull Request Process
 
-### Before Submitting
-
-1. **Update your branch**:
-```bash
-git fetch upstream
-git rebase upstream/main
-```
-
-2. **Run all tests**:
-```bash
-# Backend tests
-cd server && ./mvnw verify
-
-# Frontend tests  
-cd front && npm test -- --coverage --watchAll=false
-
-# Integration tests
-docker-compose -f docker-compose.test.yml up --abort-on-container-exit
-```
-
-3. **Check code quality**:
-```bash
-# Java code quality
-./mvnw spotbugs:check pmd:check checkstyle:check
-
-# JavaScript/React code quality
-npm run lint
-npm run type-check
-```
-
-### Pull Request Template
+### PR Template
 
 ```markdown
 ## Description
-Brief description of changes made.
+Brief description of changes and their security impact.
 
 ## Type of Change
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
+- [ ] 🐛 Bug fix (ransomware detection issue)
+- [ ] ✨ New feature (enhanced defense capability)
+- [ ] 🚨 Security fix (vulnerability patch)
+- [ ] 🤖 ML improvement (model accuracy)
+- [ ] 📚 Documentation
+
+## Security Impact
+- [ ] Changes authentication/authorization
+- [ ] Handles sensitive data
+- [ ] Modifies security controls
+- [ ] Updates dependencies
 
 ## Testing
-- [ ] Unit tests pass
+- [ ] Unit tests pass (100% coverage)
 - [ ] Integration tests pass
-- [ ] Manual testing completed
-- [ ] Performance impact assessed
+- [ ] Security tests pass
+- [ ] Performance benchmarks met
+- [ ] ML model validation complete
 
 ## Checklist
-- [ ] My code follows the project's coding standards
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
+- [ ] Code follows security guidelines
+- [ ] No hardcoded secrets
+- [ ] Input validation implemented
+- [ ] Error handling doesn't leak info
+- [ ] Documentation updated
+- [ ] CHANGELOG.md updated
 
-## Screenshots (if applicable)
-Add screenshots to help explain your changes.
+## Performance Impact
+- Prediction latency: before/after
+- Memory usage: before/after
+- API response time: before/after
 
-## Additional Notes
-Any additional information or context about the changes.
+## Screenshots (if UI changes)
+Include before/after screenshots
 ```
 
 ### Review Process
 
-1. **Automated Checks**: CI/CD pipeline runs tests and quality checks
-2. **Code Review**: At least one maintainer reviews the code
-3. **Testing**: Reviewer tests the functionality
-4. **Approval**: Changes are approved and merged
+1. **Automated Checks**:
+   - Security scanning (SonarQube)
+   - Dependency check (OWASP)
+   - Test coverage (100%)
+   - Performance tests
 
-## Issue Reporting
+2. **Manual Review**:
+   - Security review for critical changes
+   - Code quality review
+   - Documentation completeness
+   - ML model validation
 
-### Bug Reports
-
-Use the bug report template:
-
-```markdown
-**Bug Description**
-A clear and concise description of what the bug is.
-
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
-
-**Expected Behavior**
-A clear and concise description of what you expected to happen.
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
-**Environment:**
-- OS: [e.g. Ubuntu 20.04]
-- Browser [e.g. chrome, safari]
-- Version [e.g. 22]
-- Docker version [e.g. 20.10.8]
-
-**Additional Context**
-Add any other context about the problem here.
-```
-
-### Feature Requests
-
-Use the feature request template:
-
-```markdown
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is.
-
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
-
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
-
-**Additional context**
-Add any other context or screenshots about the feature request here.
-```
+3. **Approval Requirements**:
+   - 1 approval for normal changes
+   - 2 approvals for security changes
+   - 3 approvals for ML model updates
 
 ## Getting Help
 
-- **Discord**: Join our Discord server for real-time help
-- **GitHub Discussions**: For general questions and discussions
-- **Stack Overflow**: Tag questions with `reactive-transactional`
-- **Email**: contact@rcimobility.com for sensitive issues
+- **Security Issues**: [security@cop-platform.org](mailto:security@cop-platform.org)
+- **Discord**: #cop-contributors channel
+- **Office Hours**: Thursdays 3-4 PM UTC
+- **Documentation**: [docs.cop-platform.org](https://docs.cop-platform.org)
 
 ## Recognition
 
-Contributors will be recognized in:
+Contributors are recognized in:
 - CONTRIBUTORS.md file
 - Release notes
-- Project README
-- Annual contributor appreciation post
+- Annual security researcher awards
+- COP Hall of Fame
 
-Thank you for contributing to the Reactive Transactional Mobility Platform! 🚀
+## Responsible Disclosure
+
+For security vulnerabilities:
+1. Email [security@cop-platform.org](mailto:security@cop-platform.org)
+2. Use PGP encryption (key in SECURITY.md)
+3. Allow 90 days for patching
+4. Coordinated disclosure
+
+---
+
+Thank you for contributing to making the world safer from ransomware! 🛡️
+
+Built by **Ossama Lafhel** - [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)

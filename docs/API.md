@@ -1,447 +1,486 @@
-# API Documentation
+# API Documentation - COP Platform
 
-This document provides comprehensive API documentation for the Reactive Transactional Mobility Platform.
+This document provides comprehensive API documentation for the COP - CyberRisk Open Platform with ransomware defense focus.
 
 ## Base URL
 
 - **Development**: `http://localhost:8080`
-- **Production**: `https://your-domain.com/api`
+- **Production**: `https://api.cop-platform.org`
 
 ## Authentication
 
-Currently, the API doesn't require authentication, but it's designed to be easily extensible with authentication mechanisms.
+- **Method**: OAuth 2.0 / JWT Bearer Token
+- **Header**: `Authorization: Bearer <token>`
 
 ## Content Types
 
 - **Request**: `application/json`
 - **Response**: `application/json`
 - **Server-Sent Events**: `text/event-stream`
+- **WebSocket**: `ws://` or `wss://`
 
-## Car Endpoints
+## Core API Endpoints
 
-### Get All Cars
+### 🎯 Ransomware Prediction API
 
-**Endpoint**: `GET /cars`
+#### Predict Ransomware Risk
 
-**Description**: Retrieve all cars in the system.
+**Endpoint**: `POST /api/v1/predictions/ransomware-risk`
 
-**Response**:
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "x": 7.06064,
-    "y": 48.092971
-  }
-]
-```
-
-**Example**:
-```bash
-curl -X GET "http://localhost:8080/cars" \
-  -H "Accept: application/json"
-```
-
-### Create Car
-
-**Endpoint**: `POST /cars`
-
-**Description**: Create a new car with coordinates.
+**Description**: Predict ransomware attack probability for an organization.
 
 **Request Body**:
 ```json
 {
-  "x": 7.06064,
-  "y": 48.092971
+  "organization": {
+    "name": "Acme Corp",
+    "industry": "manufacturing",
+    "size": "enterprise",
+    "location": {
+      "latitude": 40.7128,
+      "longitude": -74.0060
+    },
+    "securityProfile": {
+      "mfaEnabled": true,
+      "backupFrequency": "daily",
+      "patchingCadence": "monthly"
+    }
+  },
+  "timeHorizon": "PT72H"
 }
 ```
 
 **Response**:
 ```json
 {
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "x": 7.06064,
-  "y": 48.092971
+  "riskScore": 7.8,
+  "confidence": 0.92,
+  "attackProbability": {
+    "next24Hours": 0.15,
+    "next72Hours": 0.45,
+    "next7Days": 0.68
+  },
+  "vulnerableAttackPaths": [
+    {
+      "vector": "phishing",
+      "probability": 0.34,
+      "mitigations": ["user training", "email filtering"]
+    },
+    {
+      "vector": "rdp_brute_force",
+      "probability": 0.28,
+      "mitigations": ["mfa", "vpn_only_access"]
+    }
+  ],
+  "recommendedActions": [
+    "Enable MFA on all admin accounts",
+    "Update Windows systems (critical patches pending)",
+    "Implement network segmentation"
+  ]
 }
 ```
 
 **Example**:
 ```bash
-curl -X POST "http://localhost:8080/cars" \
+curl -X POST "http://localhost:8080/api/v1/predictions/ransomware-risk" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
   -d '{
-    "x": 7.06064,
-    "y": 48.092971
+    "organization": {
+      "name": "Test Corp",
+      "industry": "healthcare",
+      "size": "medium"
+    },
+    "timeHorizon": "PT48H"
   }'
 ```
 
-### Real-time Car Updates
+### ⚡ Kill-Chain Monitoring API
 
-**Endpoint**: `GET /cars/flux`
+#### Stream Kill-Chain Events
 
-**Description**: Server-Sent Events stream for real-time car updates.
+**Endpoint**: `GET /api/v1/killchain/stream`
 
-**Response**: Stream of car data
+**Description**: Real-time stream of ransomware kill-chain progression events.
+
+**Query Parameters**:
+- `severity`: Filter by severity (low, medium, high, critical)
+- `stage`: Filter by kill-chain stage
+
+**Response** (Server-Sent Events):
 ```
-data: {"id":"550e8400-e29b-41d4-a716-446655440000","x":7.06064,"y":48.092971}
+event: killchain-alert
+data: {
+  "id": "evt-123",
+  "timestamp": "2025-01-15T10:30:00Z",
+  "stage": "lateral_movement",
+  "confidence": 0.89,
+  "affectedAssets": ["srv-01", "wks-42"],
+  "indicators": [
+    "Mimikatz process detected",
+    "Abnormal RDP connections"
+  ],
+  "recommendedResponse": "isolate_network"
+}
 
-data: {"id":"550e8400-e29b-41d4-a716-446655440000","x":7.06070,"y":48.092980}
-```
-
-**Example**:
-```bash
-curl -N -H "Accept: text/event-stream" \
-  "http://localhost:8080/cars/flux"
-```
-
-**JavaScript Example**:
-```javascript
-const eventSource = new EventSource('http://localhost:8080/cars/flux');
-eventSource.onmessage = function(event) {
-  const carData = JSON.parse(event.data);
-  console.log('Car update:', carData);
-};
-```
-
-### Get Cars Within Area
-
-**Endpoint**: `GET /cars/inside`
-
-**Description**: Get cars within a specified distance from a point.
-
-**Parameters**:
-- `x` (required): X coordinate (longitude)
-- `y` (required): Y coordinate (latitude)
-- `distance` (required): Distance in meters
-
-**Example**:
-```bash
-curl -X GET "http://localhost:8080/cars/inside?x=7.06064&y=48.092971&distance=1000"
+event: killchain-update
+data: {
+  "id": "evt-123",
+  "progression": "lateral_movement -> collection",
+  "timeToEncryption": "PT2H30M",
+  "urgency": "critical"
+}
 ```
 
-**Response**:
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "x": 7.06064,
-    "y": 48.092971
-  }
-]
-```
+### 🛡️ Automated Defense API
 
-## User Endpoints
+#### Trigger Emergency Response
 
-### Get All Users
+**Endpoint**: `POST /api/v1/defense/emergency-response`
 
-**Endpoint**: `GET /users`
-
-**Description**: Retrieve all users in the system.
-
-**Response**:
-```json
-[
-  {
-    "id": "660e8400-e29b-41d4-a716-446655440000",
-    "x": 7.1,
-    "y": 48.1
-  }
-]
-```
-
-### Create User
-
-**Endpoint**: `POST /users`
-
-**Description**: Create a new user with coordinates.
+**Description**: Activate automated ransomware defense measures.
 
 **Request Body**:
 ```json
 {
-  "x": 7.1,
-  "y": 48.1
+  "threatId": "evt-123",
+  "responseType": "full_isolation",
+  "affectedAssets": ["srv-01", "wks-42"],
+  "backupTrigger": true,
+  "notifyChannels": ["email", "sms", "slack"]
 }
 ```
 
 **Response**:
 ```json
 {
-  "id": "660e8400-e29b-41d4-a716-446655440000",
-  "x": 7.1,
-  "y": 48.1
+  "responseId": "resp-456",
+  "status": "initiated",
+  "actions": [
+    {
+      "action": "network_isolation",
+      "targets": 2,
+      "status": "completed"
+    },
+    {
+      "action": "emergency_backup",
+      "status": "in_progress",
+      "estimatedCompletion": "PT15M"
+    },
+    {
+      "action": "critical_alert",
+      "channels": ["email", "sms", "slack"],
+      "status": "sent"
+    }
+  ],
+  "timestamp": "2025-01-15T10:32:00Z"
 }
 ```
 
-### Real-time User Updates
+### 💼 IT Asset Management API
 
-**Endpoint**: `GET /users/flux`
+#### List IT Assets
 
-**Description**: Server-Sent Events stream for real-time user updates.
+**Endpoint**: `GET /api/v1/assets`
 
-**Response**: Stream of user data
-```
-data: {"id":"660e8400-e29b-41d4-a716-446655440000","x":7.1,"y":48.1}
+**Description**: Retrieve all monitored IT assets with risk scores.
 
-data: {"id":"660e8400-e29b-41d4-a716-446655440000","x":7.105,"y":48.105}
-```
+**Query Parameters**:
+- `type`: Filter by asset type (server, workstation, network, iot, cloud)
+- `criticality`: Filter by criticality (low, medium, high, critical)
+- `status`: Filter by status (active, inactive, compromised)
+- `page`: Page number (default: 0)
+- `size`: Page size (default: 20)
 
-## Error Responses
-
-### Error Format
-
-All error responses follow this structure:
-
+**Response**:
 ```json
 {
-  "timestamp": "2025-01-16T10:30:00.000+00:00",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Invalid coordinates provided",
-  "path": "/cars"
+  "content": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "DC-01",
+      "type": "server",
+      "criticality": "critical",
+      "status": "active",
+      "location": {
+        "x": -74.0060,
+        "y": 40.7128
+      },
+      "riskScore": 8.5,
+      "vulnerabilities": 3,
+      "lastSeen": "2025-01-15T10:00:00Z"
+    }
+  ],
+  "totalElements": 150,
+  "totalPages": 8,
+  "number": 0
 }
 ```
 
-### HTTP Status Codes
+#### Create Asset
 
-- `200 OK`: Successful request
-- `201 Created`: Resource successfully created
-- `400 Bad Request`: Invalid request parameters or body
-- `404 Not Found`: Resource not found
-- `500 Internal Server Error`: Server error
+**Endpoint**: `POST /api/v1/assets`
 
-### Common Error Scenarios
+**Description**: Register a new IT asset for monitoring.
 
-#### Invalid Coordinates
+**Request Body**:
+```json
+{
+  "name": "WEB-03",
+  "type": "server",
+  "criticality": "high",
+  "location": {
+    "x": -74.0060,
+    "y": 40.7128
+  },
+  "metadata": {
+    "os": "Ubuntu 22.04",
+    "services": ["nginx", "postgresql"],
+    "owner": "web-team"
+  }
+}
+```
 
-**Request**:
+#### Find Assets Within Radius
+
+**Endpoint**: `GET /api/v1/assets/nearby`
+
+**Description**: Find assets within a geographic radius (useful for incident correlation).
+
+**Query Parameters**:
+- `x`: Longitude
+- `y`: Latitude
+- `radius`: Radius in meters
+
+**Example**:
 ```bash
-curl -X POST "http://localhost:8080/cars" \
-  -H "Content-Type: application/json" \
-  -d '{"x": "invalid", "y": 48.092971}'
+curl "http://localhost:8080/api/v1/assets/nearby?x=-74.0060&y=40.7128&radius=1000"
 ```
 
-**Response** (400):
+### 🚨 Security Incident API
+
+#### List Security Incidents
+
+**Endpoint**: `GET /api/v1/incidents`
+
+**Description**: Retrieve security incidents with ransomware indicators.
+
+**Query Parameters**:
+- `severity`: Filter by severity
+- `type`: Filter by incident type
+- `status`: Filter by status (open, investigating, contained, resolved)
+- `ransomware`: Boolean flag for ransomware-related incidents
+
+**Response**:
 ```json
 {
-  "timestamp": "2025-01-16T10:30:00.000+00:00",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Invalid coordinate format",
-  "path": "/cars"
+  "content": [
+    {
+      "id": "inc-789",
+      "title": "Potential Ransomware Activity Detected",
+      "severity": "critical",
+      "type": "ransomware_indicators",
+      "status": "investigating",
+      "detectedAt": "2025-01-15T09:45:00Z",
+      "affectedAssets": 5,
+      "indicators": [
+        "Mass file encryption activity",
+        "Shadow copy deletion",
+        "Suspicious network scanning"
+      ],
+      "ransomwareConfidence": 0.87,
+      "estimatedImpact": {
+        "systems": 12,
+        "dataAtRisk": "2.5TB",
+        "estimatedDowntime": "P2D"
+      }
+    }
+  ]
 }
 ```
 
-#### Missing Required Fields
+#### Report Security Incident
 
-**Request**:
-```bash
-curl -X POST "http://localhost:8080/cars" \
-  -H "Content-Type: application/json" \
-  -d '{"x": 7.06064}'
-```
+**Endpoint**: `POST /api/v1/incidents`
 
-**Response** (400):
+**Description**: Report a new security incident.
+
+**Request Body**:
 ```json
 {
-  "timestamp": "2025-01-16T10:30:00.000+00:00",
+  "title": "Suspicious encryption activity on FILE-01",
+  "description": "Detected rapid file modifications with high entropy",
+  "severity": "high",
+  "type": "potential_ransomware",
+  "affectedAssetIds": ["asset-123", "asset-456"],
+  "indicators": [
+    "File extension changes to .locked",
+    "High CPU usage by unknown process",
+    "Network connections to known C2 servers"
+  ]
+}
+```
+
+### 📊 Analytics API
+
+#### Get Ransomware Trends
+
+**Endpoint**: `GET /api/v1/analytics/ransomware-trends`
+
+**Description**: Analyze ransomware attack trends and patterns.
+
+**Query Parameters**:
+- `period`: Time period (7d, 30d, 90d, 1y)
+- `groupBy`: Grouping (day, week, month)
+
+**Response**:
+```json
+{
+  "period": "30d",
+  "trends": [
+    {
+      "date": "2025-01-01",
+      "attacks": 12,
+      "prevented": 10,
+      "successRate": 0.83
+    }
+  ],
+  "topVectors": [
+    {"vector": "phishing", "count": 45},
+    {"vector": "rdp_brute_force", "count": 32}
+  ],
+  "targetedIndustries": [
+    {"industry": "healthcare", "percentage": 0.28},
+    {"industry": "manufacturing", "percentage": 0.22}
+  ]
+}
+```
+
+### 🔗 Insurance Integration API
+
+#### Get Insurance Risk Score
+
+**Endpoint**: `POST /api/v1/insurance/risk-score`
+
+**Description**: Calculate ransomware insurance risk score.
+
+**Request Body**:
+```json
+{
+  "organizationId": "org-123",
+  "coverageType": "ransomware",
+  "assessmentDepth": "comprehensive"
+}
+```
+
+**Response**:
+```json
+{
+  "riskScore": 72,
+  "rating": "medium-high",
+  "factors": {
+    "securityPosture": 65,
+    "industryRisk": 78,
+    "historicalIncidents": 45,
+    "backupMaturity": 82
+  },
+  "premiumIndicator": {
+    "baseRate": 2.3,
+    "riskMultiplier": 1.4
+  },
+  "recommendations": [
+    "Implement immutable backups",
+    "Enhance employee security training",
+    "Deploy EDR on all endpoints"
+  ]
+}
+```
+
+## WebSocket API
+
+### Real-time Ransomware Alerts
+
+**Endpoint**: `ws://localhost:8080/ws/v1/ransomware-alerts`
+
+**Subscribe Message**:
+```json
+{
+  "action": "subscribe",
+  "channels": ["kill-chain", "predictions", "incidents"],
+  "filters": {
+    "severity": ["high", "critical"],
+    "confidence": 0.7
+  }
+}
+```
+
+**Alert Messages**:
+```json
+{
+  "type": "ransomware-alert",
+  "severity": "critical",
+  "data": {
+    "alertId": "alert-123",
+    "message": "High-confidence ransomware activity detected",
+    "affectedSystems": 3,
+    "killChainStage": "encryption",
+    "timeToAction": "PT5M"
+  }
+}
+```
+
+## Error Handling
+
+All endpoints follow consistent error response format:
+
+```json
+{
+  "timestamp": "2025-01-15T10:00:00Z",
   "status": 400,
   "error": "Bad Request",
-  "message": "Required field 'y' is missing",
-  "path": "/cars"
+  "message": "Invalid organization data",
+  "path": "/api/v1/predictions/ransomware-risk",
+  "errors": [
+    {
+      "field": "organization.industry",
+      "message": "Industry is required"
+    }
+  ]
 }
 ```
 
 ## Rate Limiting
 
-Currently, no rate limiting is implemented, but the system is designed to handle high concurrent loads through reactive programming.
+- **Default**: 100 requests per minute per IP
+- **Authenticated**: 1000 requests per minute per user
+- **Prediction API**: 20 requests per minute (resource intensive)
 
-## Pagination
+## Status Codes
 
-For large datasets, pagination can be implemented using standard Spring Boot pagination parameters:
+- `200 OK`: Successful request
+- `201 Created`: Resource created successfully
+- `400 Bad Request`: Invalid request data
+- `401 Unauthorized`: Missing or invalid authentication
+- `403 Forbidden`: Insufficient permissions
+- `404 Not Found`: Resource not found
+- `429 Too Many Requests`: Rate limit exceeded
+- `500 Internal Server Error`: Server error
+- `503 Service Unavailable`: Service temporarily unavailable
 
-- `page`: Page number (0-based)
-- `size`: Page size (default: 20)
-- `sort`: Sort criteria
+## API Versioning
 
-**Example**:
-```bash
-curl "http://localhost:8080/cars?page=0&size=10&sort=id,asc"
-```
+The API uses URL versioning. Current version is `v1`. When breaking changes are introduced, a new version will be created while maintaining backward compatibility.
 
-## Filtering and Search
+Example:
+- Current: `/api/v1/assets`
+- Future: `/api/v2/assets`
 
-### Geospatial Queries
+## OpenAPI Specification
 
-The `/cars/inside` and `/users/inside` endpoints support geospatial filtering:
+The complete OpenAPI 3.0 specification is available at:
+- **JSON**: `http://localhost:8080/v3/api-docs`
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
 
-- **Point-in-radius**: Find entities within a circular area
-- **Distance-based**: Specify distance in meters
+---
 
-**Advanced Example**:
-```bash
-# Find all cars within 5km of a specific point
-curl "http://localhost:8080/cars/inside?x=7.06064&y=48.092971&distance=5000"
-```
-
-## WebSocket Alternative
-
-While the current implementation uses Server-Sent Events, the architecture supports WebSocket implementation for bidirectional communication:
-
-```javascript
-// Future WebSocket implementation
-const ws = new WebSocket('ws://localhost:8080/ws/cars');
-ws.onmessage = function(event) {
-  const data = JSON.parse(event.data);
-  console.log('Real-time car update:', data);
-};
-```
-
-## SDK Examples
-
-### JavaScript/TypeScript Client
-
-```typescript
-class MobilityApiClient {
-  private baseUrl: string;
-
-  constructor(baseUrl: string = 'http://localhost:8080') {
-    this.baseUrl = baseUrl;
-  }
-
-  async getCars(): Promise<Car[]> {
-    const response = await fetch(`${this.baseUrl}/cars`);
-    return response.json();
-  }
-
-  async createCar(car: CreateCarRequest): Promise<Car> {
-    const response = await fetch(`${this.baseUrl}/cars`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(car)
-    });
-    return response.json();
-  }
-
-  subscribeToCars(callback: (car: Car) => void): EventSource {
-    const eventSource = new EventSource(`${this.baseUrl}/cars/flux`);
-    eventSource.onmessage = (event) => {
-      callback(JSON.parse(event.data));
-    };
-    return eventSource;
-  }
-
-  async getCarsInArea(x: number, y: number, distance: number): Promise<Car[]> {
-    const response = await fetch(
-      `${this.baseUrl}/cars/inside?x=${x}&y=${y}&distance=${distance}`
-    );
-    return response.json();
-  }
-}
-
-// Usage
-const client = new MobilityApiClient();
-const cars = await client.getCars();
-const eventSource = client.subscribeToCars((car) => {
-  console.log('Car update:', car);
-});
-```
-
-### Python Client
-
-```python
-import requests
-import json
-from typing import List, Dict
-import sseclient
-
-class MobilityApiClient:
-    def __init__(self, base_url: str = "http://localhost:8080"):
-        self.base_url = base_url
-
-    def get_cars(self) -> List[Dict]:
-        response = requests.get(f"{self.base_url}/cars")
-        response.raise_for_status()
-        return response.json()
-
-    def create_car(self, x: float, y: float) -> Dict:
-        data = {"x": x, "y": y}
-        response = requests.post(
-            f"{self.base_url}/cars",
-            json=data,
-            headers={"Content-Type": "application/json"}
-        )
-        response.raise_for_status()
-        return response.json()
-
-    def subscribe_to_cars(self, callback):
-        response = requests.get(
-            f"{self.base_url}/cars/flux",
-            stream=True,
-            headers={"Accept": "text/event-stream"}
-        )
-        
-        client = sseclient.SSEClient(response)
-        for event in client.events():
-            if event.data:
-                car_data = json.loads(event.data)
-                callback(car_data)
-
-# Usage
-client = MobilityApiClient()
-cars = client.get_cars()
-client.subscribe_to_cars(lambda car: print(f"Car update: {car}"))
-```
-
-## Testing the API
-
-### Health Check
-
-```bash
-curl http://localhost:8080/actuator/health
-```
-
-Expected response:
-```json
-{
-  "status": "UP",
-  "components": {
-    "db": {
-      "status": "UP",
-      "details": {
-        "database": "PostgreSQL",
-        "validationQuery": "isValid()"
-      }
-    }
-  }
-}
-```
-
-### Integration Test Script
-
-```bash
-#!/bin/bash
-
-BASE_URL="http://localhost:8080"
-
-# Test car creation
-echo "Creating car..."
-CAR_RESPONSE=$(curl -s -X POST "$BASE_URL/cars" \
-  -H "Content-Type: application/json" \
-  -d '{"x": 7.06064, "y": 48.092971}')
-
-echo "Car created: $CAR_RESPONSE"
-
-# Test getting all cars
-echo "Getting all cars..."
-ALL_CARS=$(curl -s "$BASE_URL/cars")
-echo "All cars: $ALL_CARS"
-
-# Test geospatial query
-echo "Getting cars within 1000m..."
-NEARBY_CARS=$(curl -s "$BASE_URL/cars/inside?x=7.06064&y=48.092971&distance=1000")
-echo "Nearby cars: $NEARBY_CARS"
-
-echo "API tests completed!"
-```
-
-This comprehensive API documentation provides all the information needed to integrate with the Reactive Transactional Mobility Platform.
+Built by **Ossama Lafhel** - [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)

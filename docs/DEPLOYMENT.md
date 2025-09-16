@@ -1,94 +1,121 @@
-# Deployment Guide
+# Deployment Guide - COP Platform
 
-This guide covers deployment strategies for the Reactive Transactional Mobility Platform across different environments.
+This guide covers deployment strategies for the COP (CyberRisk Open Platform) ransomware defense system across different environments.
 
 ## Table of Contents
 
 1. [Prerequisites](#prerequisites)
 2. [Environment Configuration](#environment-configuration)
 3. [Docker Deployment](#docker-deployment)
-4. [Production Deployment](#production-deployment)
-5. [Cloud Deployment](#cloud-deployment)
-6. [Monitoring and Maintenance](#monitoring-and-maintenance)
-7. [Troubleshooting](#troubleshooting)
+4. [Kubernetes Deployment](#kubernetes-deployment)
+5. [Production Best Practices](#production-best-practices)
+6. [Security Hardening](#security-hardening)
+7. [Monitoring and Alerting](#monitoring-and-alerting)
+8. [Disaster Recovery](#disaster-recovery)
 
 ## Prerequisites
 
 ### System Requirements
 
+#### Minimum (Development)
 - **Docker**: 20.10+ with Docker Compose 2.0+
-- **Memory**: Minimum 4GB RAM (8GB+ recommended for production)
-- **CPU**: 2+ cores (4+ cores recommended for production)
-- **Storage**: 20GB+ available disk space
-- **Network**: Ports 3000, 8080, 5432 available
+- **Memory**: 8GB RAM
+- **CPU**: 4 cores
+- **Storage**: 50GB SSD
+- **Network**: Ports 3000, 8080, 5432, 6379 available
 
-### Optional Requirements
+#### Recommended (Production)
+- **Container Orchestration**: Kubernetes 1.25+
+- **Memory**: 32GB+ RAM per node
+- **CPU**: 8+ cores per node
+- **Storage**: 500GB+ NVMe SSD
+- **Network**: 10Gbps+ network connectivity
 
-- **Domain name**: For production deployment
-- **SSL certificate**: For HTTPS (Let's Encrypt recommended)
-- **Load balancer**: For high availability
-- **Monitoring tools**: Prometheus, Grafana, ELK stack
+### Software Dependencies
+- **Java**: OpenJDK 17+
+- **Node.js**: 18+ (for frontend builds)
+- **PostgreSQL**: 15 with PostGIS 3.4
+- **Redis**: 7.0+
+- **Apache Kafka**: 3.5+ (for event streaming)
 
 ## Environment Configuration
 
 ### Environment Variables
 
-Create environment-specific `.env` files:
-
-#### `.env.development`
 ```bash
-# Application
-SPRING_PROFILES_ACTIVE=dev
-SERVER_PORT=8080
-FRONTEND_PORT=3000
+# Application Configuration
+COP_ENV=production
+COP_VERSION=2.0.0
 
-# Database
-POSTGRES_DB=mobility_db
-POSTGRES_USER=rci
-POSTGRES_PASSWORD=rci_dev_password
+# Database Configuration
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
+POSTGRES_DB=cop_db
+POSTGRES_USER=cop
+POSTGRES_PASSWORD=<secure_password>
 
-# Frontend
-REACT_APP_API_URL=http://localhost:8080
-REACT_APP_MAPBOX_TOKEN=your_mapbox_token_here
-REACT_APP_ENVIRONMENT=development
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=<secure_password>
 
-# Java/JVM
-JAVA_OPTS=-Xmx512m -Xms256m
+# Kafka Configuration
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+KAFKA_SECURITY_PROTOCOL=SASL_SSL
 
-# Docker
-COMPOSE_PROJECT_NAME=reactive-transactional-dev
+# Security Configuration
+JWT_SECRET=<256-bit-secret>
+ENCRYPTION_KEY=<aes-256-key>
+OAUTH_CLIENT_ID=<oauth-client-id>
+OAUTH_CLIENT_SECRET=<oauth-client-secret>
+
+# ML Model Configuration
+ML_MODEL_PATH=/models
+ML_INFERENCE_TIMEOUT=1000
+ML_GPU_ENABLED=true
+
+# Monitoring
+MONITORING_ENABLED=true
+METRICS_PORT=9090
+TRACING_ENABLED=true
 ```
 
-#### `.env.production`
-```bash
-# Application
-SPRING_PROFILES_ACTIVE=prod
-SERVER_PORT=8080
-FRONTEND_PORT=3000
+### Configuration Files
 
-# Database
-POSTGRES_DB=mobility_db
-POSTGRES_USER=rci
-POSTGRES_PASSWORD=your_secure_production_password
-POSTGRES_HOST=postgis
-POSTGRES_PORT=5432
-
-# Frontend
-REACT_APP_API_URL=https://api.yourdomain.com
-REACT_APP_MAPBOX_TOKEN=your_production_mapbox_token
-REACT_APP_ENVIRONMENT=production
-
-# Java/JVM
-JAVA_OPTS=-Xmx1g -Xms512m -XX:+UseG1GC
-
-# Docker
-COMPOSE_PROJECT_NAME=reactive-transactional-prod
-
-# SSL (if using)
-SSL_CERT_PATH=/path/to/cert.pem
-SSL_KEY_PATH=/path/to/key.pem
+#### application-prod.yml
+```yaml
+spring:
+  profiles:
+    active: prod
+  
+  r2dbc:
+    url: r2dbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    pool:
+      enabled: true
+      initial-size: 20
+      max-size: 50
+      
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    password: ${REDIS_PASSWORD}
+    ssl: true
+    
+cop:
+  security:
+    ransomware-detection:
+      enabled: true
+      sensitivity: high
+      auto-response: true
+    
+  ml:
+    models:
+      prediction: /models/ransomware_predictor_v2.pkl
+      killchain: /models/killchain_detector_v2.pkl
+    gpu:
+      enabled: ${ML_GPU_ENABLED}
 ```
 
 ## Docker Deployment
@@ -97,733 +124,799 @@ SSL_KEY_PATH=/path/to/key.pem
 
 ```bash
 # Clone repository
-git clone https://github.com/your-org/reactive-transactional.git
+git clone https://github.com/ossamalafhel/reactive-transactional.git
 cd reactive-transactional
 
-# Create development environment file
-cp .env.development .env
+# Create environment file
+cp .env.example .env
+# Edit .env with your configuration
 
-# Start development environment
-docker-compose -f docker-compose.dev.yml up --build
-
-# Verify deployment
-curl http://localhost:8080/actuator/health
-curl http://localhost:3000/
+# Build and start services
+docker-compose up --build
 ```
 
-### Production Environment
+### Production Docker Compose
 
-```bash
-# Create production environment file
-cp .env.production .env
+```yaml
+version: '3.9'
 
-# Update environment variables
-nano .env
+services:
+  postgres:
+    image: postgis/postgis:15-3.4-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-# Build and start production services
-docker-compose up --build -d
+  redis:
+    image: redis:7-alpine
+    command: >
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --appendfsync everysec
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
 
-# Verify deployment
-docker-compose ps
-docker-compose logs -f
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_HOURS: 168
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  backend:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_OPTS: >
+        -Xmx2g
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=200
+        -XX:+HeapDumpOnOutOfMemoryError
+    volumes:
+      - ./models:/models:ro
+      - ./logs:/logs
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    environment:
+      REACT_APP_API_URL: https://api.cop-platform.org
+      REACT_APP_WS_URL: wss://api.cop-platform.org
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/cache:/var/cache/nginx
+    depends_on:
+      - frontend
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  kafka_data:
+    driver: local
 ```
 
-### Service Management
+## Kubernetes Deployment
 
-```bash
-# Start services
-docker-compose up -d
+### Namespace and ConfigMap
 
-# Stop services
-docker-compose down
-
-# Restart specific service
-docker-compose restart server
-
-# View logs
-docker-compose logs -f server
-docker-compose logs -f front
-
-# Scale services (if load balancing is configured)
-docker-compose up -d --scale server=3
-
-# Update and redeploy
-git pull
-docker-compose up --build -d
-```
-
-## Production Deployment
-
-### 1. Server Preparation
-
-#### Ubuntu/Debian
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Install additional tools
-sudo apt install -y htop curl wget git
-```
-
-#### CentOS/RHEL
-```bash
-# Update system
-sudo yum update -y
-
-# Install Docker
-sudo yum install -y yum-utils
-sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-sudo yum install -y docker-ce docker-ce-cli containerd.io
-sudo systemctl start docker
-sudo systemctl enable docker
-sudo usermod -aG docker $USER
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-```
-
-### 2. Application Deployment
-
-```bash
-# Create application directory
-sudo mkdir -p /opt/reactive-transactional
-cd /opt/reactive-transactional
-
-# Clone application
-git clone https://github.com/your-org/reactive-transactional.git .
-
-# Set up environment
-cp .env.production .env
-sudo chown -R $USER:$USER /opt/reactive-transactional
-
-# Configure secrets (use Docker secrets in production)
-echo "your_secure_db_password" | docker secret create postgres_password -
-echo "your_mapbox_token" | docker secret create mapbox_token -
-
-# Deploy application
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-### 3. Reverse Proxy Configuration
-
-#### Nginx Configuration
-
-Create `/etc/nginx/sites-available/reactive-transactional`:
-
-```nginx
-upstream backend {
-    server localhost:8080 max_fails=3 fail_timeout=30s;
-    # Add more servers for load balancing
-    # server server2:8080 max_fails=3 fail_timeout=30s;
-}
-
-upstream frontend {
-    server localhost:3000 max_fails=3 fail_timeout=30s;
-}
-
-# Redirect HTTP to HTTPS
-server {
-    listen 80;
-    server_name yourdomain.com www.yourdomain.com;
-    return 301 https://$server_name$request_uri;
-}
-
-# HTTPS Configuration
-server {
-    listen 443 ssl http2;
-    server_name yourdomain.com www.yourdomain.com;
-
-    # SSL Configuration
-    ssl_certificate /path/to/certificate.pem;
-    ssl_certificate_key /path/to/private_key.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-
-    # Security Headers
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
-    # Frontend (React application)
-    location / {
-        proxy_pass http://frontend;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # Handle React Router
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Backend API
-    location /api/ {
-        proxy_pass http://backend/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-
-    # Server-Sent Events (SSE) configuration
-    location /cars/flux {
-        proxy_pass http://backend/cars/flux;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # SSE specific configuration
-        proxy_http_version 1.1;
-        proxy_set_header Connection '';
-        proxy_cache_bypass $http_upgrade;
-        proxy_buffering off;
-        proxy_read_timeout 24h;
-    }
-
-    location /users/flux {
-        proxy_pass http://backend/users/flux;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # SSE specific configuration
-        proxy_http_version 1.1;
-        proxy_set_header Connection '';
-        proxy_cache_bypass $http_upgrade;
-        proxy_buffering off;
-        proxy_read_timeout 24h;
-    }
-
-    # Static file caching
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-Content-Type-Options "nosniff" always;
-    }
-
-    # Health checks
-    location /health {
-        proxy_pass http://backend/actuator/health;
-        access_log off;
-    }
-}
-```
-
-Enable the site:
-```bash
-sudo ln -s /etc/nginx/sites-available/reactive-transactional /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-### 4. SSL Certificate Setup
-
-#### Using Let's Encrypt (Certbot)
-
-```bash
-# Install Certbot
-sudo apt install -y certbot python3-certbot-nginx
-
-# Obtain certificate
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
-
-# Automatic renewal
-sudo crontab -e
-# Add: 0 12 * * * /usr/bin/certbot renew --quiet
-```
-
-## Cloud Deployment
-
-### AWS Deployment
-
-#### Using ECS (Elastic Container Service)
-
-1. **Create ECR Repositories**:
-```bash
-aws ecr create-repository --repository-name reactive-transactional/frontend
-aws ecr create-repository --repository-name reactive-transactional/backend
-```
-
-2. **Build and Push Images**:
-```bash
-# Get ECR login
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 123456789.dkr.ecr.us-east-1.amazonaws.com
-
-# Build and tag images
-docker build -t reactive-transactional/frontend ./front
-docker build -t reactive-transactional/backend ./server
-
-# Tag for ECR
-docker tag reactive-transactional/frontend:latest 123456789.dkr.ecr.us-east-1.amazonaws.com/reactive-transactional/frontend:latest
-docker tag reactive-transactional/backend:latest 123456789.dkr.ecr.us-east-1.amazonaws.com/reactive-transactional/backend:latest
-
-# Push to ECR
-docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/reactive-transactional/frontend:latest
-docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/reactive-transactional/backend:latest
-```
-
-3. **ECS Task Definition** (task-definition.json):
-```json
-{
-  "family": "reactive-transactional",
-  "networkMode": "awsvpc",
-  "requiresCompatibilities": ["FARGATE"],
-  "cpu": "1024",
-  "memory": "2048",
-  "executionRoleArn": "arn:aws:iam::123456789:role/ecsTaskExecutionRole",
-  "containerDefinitions": [
-    {
-      "name": "backend",
-      "image": "123456789.dkr.ecr.us-east-1.amazonaws.com/reactive-transactional/backend:latest",
-      "portMappings": [
-        {
-          "containerPort": 8080,
-          "protocol": "tcp"
-        }
-      ],
-      "essential": true,
-      "environment": [
-        {
-          "name": "SPRING_PROFILES_ACTIVE",
-          "value": "prod"
-        },
-        {
-          "name": "POSTGRES_HOST",
-          "value": "your-rds-endpoint"
-        }
-      ],
-      "secrets": [
-        {
-          "name": "POSTGRES_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:prod/db/password"
-        }
-      ]
-    },
-    {
-      "name": "frontend",
-      "image": "123456789.dkr.ecr.us-east-1.amazonaws.com/reactive-transactional/frontend:latest",
-      "portMappings": [
-        {
-          "containerPort": 3000,
-          "protocol": "tcp"
-        }
-      ],
-      "essential": true
-    }
-  ]
-}
-```
-
-### Google Cloud Platform
-
-#### Using Cloud Run
-
-```bash
-# Build and deploy backend
-gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/reactive-transactional-backend ./server
-gcloud run deploy reactive-transactional-backend \
-  --image gcr.io/YOUR_PROJECT_ID/reactive-transactional-backend \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated
-
-# Build and deploy frontend
-gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/reactive-transactional-frontend ./front
-gcloud run deploy reactive-transactional-frontend \
-  --image gcr.io/YOUR_PROJECT_ID/reactive-transactional-frontend \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated
-```
-
-### Kubernetes Deployment
-
-#### Kubernetes Manifests
-
-**namespace.yaml**:
 ```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: reactive-transactional
-```
+  name: cop-platform
 
-**configmap.yaml**:
-```yaml
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app-config
-  namespace: reactive-transactional
+  name: cop-config
+  namespace: cop-platform
 data:
   SPRING_PROFILES_ACTIVE: "prod"
-  POSTGRES_HOST: "postgresql-service"
-  POSTGRES_DB: "mobility_db"
-  POSTGRES_USER: "rci"
+  COP_ENV: "production"
+  MONITORING_ENABLED: "true"
 ```
 
-**secret.yaml**:
+### Database Deployment
+
 ```yaml
-apiVersion: v1
-kind: Secret
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
-  name: app-secrets
-  namespace: reactive-transactional
-type: Opaque
-data:
-  POSTGRES_PASSWORD: <base64-encoded-password>
-  MAPBOX_TOKEN: <base64-encoded-token>
+  name: postgres
+  namespace: cop-platform
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgis/postgis:15-3.4-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: cop_db
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: cop-secrets
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cop-secrets
+              key: postgres-password
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2"
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 100Gi
 ```
 
-**deployment.yaml**:
+### Application Deployment
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
-  namespace: reactive-transactional
+  name: cop-backend
+  namespace: cop-platform
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: backend
+      app: cop-backend
   template:
     metadata:
       labels:
-        app: backend
+        app: cop-backend
     spec:
       containers:
       - name: backend
-        image: your-registry/reactive-transactional-backend:latest
+        image: cop-platform/backend:2.0.0
         ports:
         - containerPort: 8080
-        envFrom:
-        - configMapRef:
-            name: app-config
-        - secretRef:
-            name: app-secrets
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod,kubernetes"
+        - name: JAVA_OPTS
+          value: "-Xmx2g -XX:+UseG1GC"
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8080
           initialDelaySeconds: 60
-          periodSeconds: 30
+          periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8080
           initialDelaySeconds: 30
-          periodSeconds: 10
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: frontend-deployment
-  namespace: reactive-transactional
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: frontend
-  template:
-    metadata:
-      labels:
-        app: frontend
-    spec:
-      containers:
-      - name: frontend
-        image: your-registry/reactive-transactional-frontend:latest
-        ports:
-        - containerPort: 3000
+          periodSeconds: 5
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "100m"
+            memory: "2Gi"
+            cpu: "1"
           limits:
-            memory: "512Mi"
-            cpu: "200m"
+            memory: "4Gi"
+            cpu: "2"
 ```
 
-**service.yaml**:
+### Service and Ingress
+
 ```yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service
-  namespace: reactive-transactional
+  name: cop-backend-service
+  namespace: cop-platform
 spec:
   selector:
-    app: backend
+    app: cop-backend
   ports:
-  - protocol: TCP
-    port: 8080
+  - port: 8080
     targetPort: 8080
   type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-service
-  namespace: reactive-transactional
-spec:
-  selector:
-    app: frontend
-  ports:
-  - protocol: TCP
-    port: 3000
-    targetPort: 3000
-  type: ClusterIP
-```
 
-**ingress.yaml**:
-```yaml
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: app-ingress
-  namespace: reactive-transactional
+  name: cop-ingress
+  namespace: cop-platform
   annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
 spec:
   tls:
   - hosts:
-    - yourdomain.com
-    secretName: app-tls
+    - api.cop-platform.org
+    secretName: cop-tls
   rules:
-  - host: yourdomain.com
+  - host: api.cop-platform.org
     http:
       paths:
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: backend-service
-            port:
-              number: 8080
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: frontend-service
+            name: cop-backend-service
             port:
-              number: 3000
+              number: 8080
 ```
 
-Deploy to Kubernetes:
-```bash
-kubectl apply -f namespace.yaml
-kubectl apply -f configmap.yaml
-kubectl apply -f secret.yaml
-kubectl apply -f deployment.yaml
-kubectl apply -f service.yaml
-kubectl apply -f ingress.yaml
+## Production Best Practices
+
+### 1. High Availability
+
+```mermaid
+graph TB
+    LB[Load Balancer]
+    
+    subgraph "Availability Zone 1"
+        APP1[COP Backend 1]
+        DB1[(PostgreSQL Primary)]
+        CACHE1[Redis Primary]
+    end
+    
+    subgraph "Availability Zone 2"
+        APP2[COP Backend 2]
+        DB2[(PostgreSQL Replica)]
+        CACHE2[Redis Replica]
+    end
+    
+    subgraph "Availability Zone 3"
+        APP3[COP Backend 3]
+        DB3[(PostgreSQL Replica)]
+        CACHE3[Redis Replica]
+    end
+    
+    LB --> APP1
+    LB --> APP2
+    LB --> APP3
+    
+    DB1 --> DB2
+    DB1 --> DB3
+    CACHE1 --> CACHE2
+    CACHE1 --> CACHE3
 ```
 
-## Monitoring and Maintenance
-
-### Health Checks
-
-```bash
-#!/bin/bash
-# health-check.sh
-
-echo "=== Health Check Report ==="
-echo "Timestamp: $(date)"
-
-# Check services
-echo "=== Docker Services ==="
-docker-compose ps
-
-# Check backend health
-echo "=== Backend Health ==="
-curl -s http://localhost:8080/actuator/health | jq '.'
-
-# Check frontend
-echo "=== Frontend Health ==="
-curl -s -o /dev/null -w "Status: %{http_code}\n" http://localhost:3000/
-
-# Check database
-echo "=== Database Health ==="
-docker exec reactive-transactional-postgis pg_isready -U rci -d mobility_db
-
-# Check disk space
-echo "=== Disk Usage ==="
-df -h | grep -E '^/dev/'
-
-# Check memory usage
-echo "=== Memory Usage ==="
-free -h
-
-echo "=== Health Check Complete ==="
-```
-
-### Backup Strategy
+### 2. Backup Strategy
 
 ```bash
 #!/bin/bash
-# backup.sh
-
-BACKUP_DIR="/opt/backups"
-DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="mobility_db_backup_$DATE.sql"
-
-# Create backup directory
-mkdir -p $BACKUP_DIR
+# Automated backup script
 
 # Database backup
-docker exec reactive-transactional-postgis pg_dump -U rci -d mobility_db > $BACKUP_DIR/$BACKUP_FILE
+pg_dump -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB | \
+  gzip > /backups/cop_db_$(date +%Y%m%d_%H%M%S).sql.gz
 
-# Compress backup
-gzip $BACKUP_DIR/$BACKUP_FILE
+# Redis backup
+redis-cli -h $REDIS_HOST -a $REDIS_PASSWORD --rdb /backups/redis_$(date +%Y%m%d_%H%M%S).rdb
 
-# Keep only last 7 days of backups
-find $BACKUP_DIR -name "*.sql.gz" -mtime +7 -delete
+# ML models backup
+tar -czf /backups/models_$(date +%Y%m%d_%H%M%S).tar.gz /models
 
-echo "Backup completed: $BACKUP_DIR/$BACKUP_FILE.gz"
+# Upload to S3
+aws s3 sync /backups s3://cop-backups/$(date +%Y%m%d)/
+
+# Cleanup old backups (keep 30 days)
+find /backups -type f -mtime +30 -delete
 ```
 
-### Log Rotation
+### 3. Scaling Configuration
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cop-backend-hpa
+  namespace: cop-platform
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cop-backend
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: ransomware_predictions_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+```
+
+## Security Hardening
+
+### 1. Network Policies
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cop-backend-netpol
+  namespace: cop-platform
+spec:
+  podSelector:
+    matchLabels:
+      app: cop-backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: nginx
+    - podSelector:
+        matchLabels:
+          app: cop-frontend
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+```
+
+### 2. Security Scanning
+
+```dockerfile
+# Multi-stage build with security scanning
+FROM maven:3.9-eclipse-temurin-17 AS builder
+
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+COPY src src
+RUN mvn clean package -DskipTests
+
+# Security scan
+FROM aquasec/trivy AS scanner
+COPY --from=builder /app/target/*.jar /scan/
+RUN trivy fs --no-progress --severity HIGH,CRITICAL /scan/
+
+# Runtime image
+FROM eclipse-temurin:17-jre-alpine
+
+RUN apk add --no-cache curl && \
+    addgroup -g 1000 cop && \
+    adduser -D -s /bin/sh -u 1000 -G cop cop
+
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
+
+USER cop
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+### 3. Secrets Management
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cop-secrets
+  namespace: cop-platform
+type: Opaque
+stringData:
+  postgres-user: cop_admin
+  postgres-password: <base64-encoded-password>
+  jwt-secret: <base64-encoded-jwt-secret>
+  encryption-key: <base64-encoded-aes-key>
+```
+
+## Monitoring and Alerting
+
+### 1. Prometheus Configuration
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: cop-monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    scrape_configs:
+    - job_name: 'cop-backend'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - cop-platform
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        regex: cop-backend
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+    
+    rule_files:
+      - /etc/prometheus/rules/*.yml
+```
+
+### 2. Alert Rules
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cop-alerts
+  namespace: cop-monitoring
+data:
+  ransomware-alerts.yml: |
+    groups:
+    - name: ransomware
+      rules:
+      - alert: HighRansomwareRiskDetected
+        expr: cop_ransomware_risk_score > 8
+        for: 5m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "High ransomware risk detected"
+          description: "Organization {{ $labels.org_id }} has risk score {{ $value }}"
+      
+      - alert: KillChainProgression
+        expr: cop_killchain_stage >= 10
+        for: 1m
+        labels:
+          severity: critical
+          team: soc
+        annotations:
+          summary: "Ransomware kill-chain progression detected"
+          description: "Kill-chain stage {{ $value }} for incident {{ $labels.incident_id }}"
+      
+      - alert: PredictionAPIDown
+        expr: up{job="cop-backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "COP Backend is down"
+          description: "{{ $labels.instance }} has been down for more than 2 minutes"
+```
+
+### 3. Grafana Dashboards
+
+```json
+{
+  "dashboard": {
+    "title": "COP Ransomware Defense Dashboard",
+    "panels": [
+      {
+        "title": "Ransomware Predictions per Minute",
+        "targets": [
+          {
+            "expr": "rate(cop_predictions_total[1m])",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "title": "Active Kill-Chain Detections",
+        "targets": [
+          {
+            "expr": "cop_active_killchains",
+            "refId": "B"
+          }
+        ]
+      },
+      {
+        "title": "Response Time Percentiles",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, cop_response_duration_seconds_bucket)",
+            "refId": "C"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Disaster Recovery
+
+### 1. Backup and Recovery Procedures
 
 ```bash
-# Setup logrotate for Docker logs
-sudo tee /etc/logrotate.d/docker-container > /dev/null <<EOF
-/var/lib/docker/containers/*/*.log {
-    rotate 7
-    daily
-    compress
-    size=1M
-    missingok
-    delaycompress
-    copytruncate
+#!/bin/bash
+# Disaster recovery script
+
+# Function to restore database
+restore_database() {
+    echo "Restoring database from backup..."
+    gunzip < $1 | psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB
 }
-EOF
+
+# Function to restore Redis
+restore_redis() {
+    echo "Restoring Redis from backup..."
+    redis-cli -h $REDIS_HOST -a $REDIS_PASSWORD --rdb $1
+}
+
+# Function to restore ML models
+restore_models() {
+    echo "Restoring ML models..."
+    tar -xzf $1 -C /
+}
+
+# Main recovery process
+case "$1" in
+    full)
+        restore_database $2
+        restore_redis $3
+        restore_models $4
+        ;;
+    database)
+        restore_database $2
+        ;;
+    cache)
+        restore_redis $2
+        ;;
+    models)
+        restore_models $2
+        ;;
+    *)
+        echo "Usage: $0 {full|database|cache|models} <backup_file>"
+        exit 1
+        ;;
+esac
+```
+
+### 2. RTO and RPO Targets
+
+| Component | RTO (Recovery Time Objective) | RPO (Recovery Point Objective) |
+|-----------|------------------------------|--------------------------------|
+| Database | 30 minutes | 5 minutes |
+| Cache | 5 minutes | 60 minutes |
+| ML Models | 15 minutes | 24 hours |
+| Full System | 60 minutes | 15 minutes |
+
+### 3. Failover Procedures
+
+```mermaid
+graph LR
+    A[Detect Failure] --> B{Component Type?}
+    B -->|Database| C[Promote Replica]
+    B -->|Application| D[Scale Replicas]
+    B -->|Cache| E[Rebuild from DB]
+    
+    C --> F[Update DNS]
+    D --> F
+    E --> F
+    
+    F --> G[Health Check]
+    G --> H[Resume Service]
+```
+
+## Maintenance Windows
+
+### Scheduled Maintenance
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maintenance-schedule
+  namespace: cop-platform
+data:
+  schedule: |
+    # Weekly maintenance windows (UTC)
+    - name: "Security Patching"
+      day: "Sunday"
+      time: "02:00-04:00"
+      frequency: "weekly"
+      
+    - name: "Database Maintenance"
+      day: "Sunday"
+      time: "04:00-05:00"
+      frequency: "monthly"
+      
+    - name: "ML Model Updates"
+      day: "Tuesday"
+      time: "03:00-04:00"
+      frequency: "bi-weekly"
+```
+
+## Performance Tuning
+
+### JVM Tuning
+
+```bash
+JAVA_OPTS="-server \
+  -Xms4g \
+  -Xmx4g \
+  -XX:+UseG1GC \
+  -XX:MaxGCPauseMillis=200 \
+  -XX:+ParallelRefProcEnabled \
+  -XX:+UseStringDeduplication \
+  -XX:+AlwaysPreTouch \
+  -XX:+HeapDumpOnOutOfMemoryError \
+  -XX:HeapDumpPath=/dumps/heap.hprof \
+  -Djava.security.egd=file:/dev/./urandom"
+```
+
+### Database Tuning
+
+```sql
+-- PostgreSQL performance tuning
+ALTER SYSTEM SET shared_buffers = '8GB';
+ALTER SYSTEM SET effective_cache_size = '24GB';
+ALTER SYSTEM SET maintenance_work_mem = '2GB';
+ALTER SYSTEM SET checkpoint_completion_target = 0.9;
+ALTER SYSTEM SET wal_buffers = '64MB';
+ALTER SYSTEM SET default_statistics_target = 100;
+ALTER SYSTEM SET random_page_cost = 1.1;
+ALTER SYSTEM SET effective_io_concurrency = 200;
+ALTER SYSTEM SET work_mem = '32MB';
+ALTER SYSTEM SET min_wal_size = '2GB';
+ALTER SYSTEM SET max_wal_size = '8GB';
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### 1. Database Connection Issues
+| Issue | Symptoms | Solution |
+|-------|----------|----------|
+| High Memory Usage | OOM errors, slow response | Increase heap size, check for memory leaks |
+| Database Connection Pool Exhaustion | "Connection refused" errors | Increase pool size, optimize queries |
+| Slow Predictions | API timeout errors | Scale ML inference pods, enable GPU |
+| Event Processing Lag | Delayed alerts | Scale Kafka consumers, increase partitions |
+| Redis Connection Issues | Cache misses, timeouts | Check Redis memory, network policies |
+
+### Debug Commands
 
 ```bash
-# Check database container
-docker-compose logs postgis
+# Check pod logs
+kubectl logs -n cop-platform -l app=cop-backend --tail=100
 
-# Test database connection
-docker exec reactive-transactional-server ping -c 3 postgis
+# Check resource usage
+kubectl top pods -n cop-platform
 
-# Check database from application container
-docker exec reactive-transactional-server nc -zv postgis 5432
+# Database connections
+kubectl exec -n cop-platform postgres-0 -- psql -U cop -c "SELECT count(*) FROM pg_stat_activity;"
+
+# Kafka lag
+kubectl exec -n cop-platform kafka-0 -- kafka-consumer-groups.sh \
+  --bootstrap-server localhost:9092 \
+  --describe --group cop-consumer-group
+
+# Redis memory
+kubectl exec -n cop-platform redis-0 -- redis-cli INFO memory
 ```
 
-#### 2. Frontend Build Issues
+---
 
-```bash
-# Clear Docker build cache
-docker system prune -a
-
-# Rebuild with no cache
-docker-compose build --no-cache front
-
-# Check Node.js memory
-docker-compose logs front | grep "FATAL ERROR"
-```
-
-#### 3. Performance Issues
-
-```bash
-# Check container resource usage
-docker stats
-
-# Check JVM memory usage
-docker exec reactive-transactional-server jstat -gc 1
-
-# Monitor database performance
-docker exec reactive-transactional-postgis psql -U rci -d mobility_db -c "SELECT * FROM pg_stat_activity;"
-```
-
-### Debugging Commands
-
-```bash
-# Enter container shell
-docker exec -it reactive-transactional-server /bin/sh
-docker exec -it reactive-transactional-front /bin/sh
-docker exec -it reactive-transactional-postgis /bin/bash
-
-# View application logs
-docker-compose logs -f --tail=100 server
-docker-compose logs -f --tail=100 front
-
-# Check network connectivity
-docker network ls
-docker network inspect reactive-transactional_mobility-network
-
-# Test API endpoints
-curl -v http://localhost:8080/actuator/health
-curl -v http://localhost:8080/cars
-curl -v http://localhost:3000/
-```
-
-### Recovery Procedures
-
-#### Database Recovery
-
-```bash
-# Stop application
-docker-compose down
-
-# Restore database from backup
-gunzip -c /opt/backups/mobility_db_backup_YYYYMMDD_HHMMSS.sql.gz | \
-docker exec -i reactive-transactional-postgis psql -U rci -d mobility_db
-
-# Start application
-docker-compose up -d
-```
-
-#### Complete System Recovery
-
-```bash
-# Pull latest images
-docker-compose pull
-
-# Restart all services
-docker-compose down
-docker-compose up -d
-
-# Verify system health
-./health-check.sh
-```
-
-This deployment guide provides comprehensive instructions for deploying the Reactive Transactional Mobility Platform in various environments with proper monitoring and maintenance procedures.
+Built by **Ossama Lafhel** - [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)
