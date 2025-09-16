@@ -1,6 +1,6 @@
-# Contributing to COP - CyberRisk Open Platform
+# Contributing to KRIIR - CyberRisk Open Platform
 
-Thank you for your interest in contributing to the COP ransomware defense platform! This guide will help you contribute to making organizations safer from ransomware attacks.
+Thank you for your interest in contributing to the KRIIR ransomware defense platform! This guide will help you contribute to making organizations safer from ransomware attacks.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ Thank you for your interest in contributing to the COP ransomware defense platfo
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code. Please report unacceptable behavior to [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com).
+This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code. Please report unacceptable behavior to [conduct@kriir.com](mailto:conduct@kriir.com).
 
 ### Our Pledge
 
@@ -612,10 +612,10 @@ Include before/after screenshots
 
 ## Getting Help
 
-- **Security Issues**: [security@cop-platform.org](mailto:security@cop-platform.org)
-- **Discord**: #cop-contributors channel
+- **Security Issues**: [security@kriir.com](mailto:security@kriir.com)
+- **Discord**: #kriir-contributors channel
 - **Office Hours**: Thursdays 3-4 PM UTC
-- **Documentation**: [docs.cop-platform.org](https://docs.cop-platform.org)
+- **Documentation**: [docs.kriir.com](https://docs.kriir.com)
 
 ## Recognition
 
@@ -623,12 +623,12 @@ Contributors are recognized in:
 - CONTRIBUTORS.md file
 - Release notes
 - Annual security researcher awards
-- COP Hall of Fame
+- KRIIR Hall of Fame
 
 ## Responsible Disclosure
 
 For security vulnerabilities:
-1. Email [security@cop-platform.org](mailto:security@cop-platform.org)
+1. Email [security@kriir.com](mailto:security@kriir.com)
 2. Use PGP encryption (key in SECURITY.md)
 3. Allow 90 days for patching
 4. Coordinated disclosure
@@ -637,4 +637,4 @@ For security vulnerabilities:
 
 Thank you for contributing to making the world safer from ransomware! 🛡️
 
-Built by **Ossama Lafhel** - [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)
+Built by **KRIIR** - [hello@kriir.com](mailto:hello@kriir.com)

@@ -1,0 +1,105 @@
+name: 🔒 Security Issue
+description: Report a security vulnerability (use security@kriir.com for critical issues)
+title: "[Security]: "
+labels: ["security", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **IMPORTANT**: For critical security vulnerabilities, please email security@kriir.com instead of creating a public issue.
+        
+        This template is for non-critical security improvements and general security discussions.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Security checklist
+      options:
+        - label: This is NOT a critical vulnerability that could compromise systems
+          required: true
+        - label: I understand critical issues should be sent to security@kriir.com
+          required: true
+        - label: I've checked this hasn't been reported before
+          required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity Level
+      description: How severe is this security issue?
+      options:
+        - Info - General security improvement
+        - Low - Minor security enhancement
+        - Medium - Security best practice violation
+        - High - Potential security issue (email security@kriir.com)
+        - Critical - Active exploit possible (EMAIL security@kriir.com)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which component is affected?
+      options:
+        - API Authentication
+        - API Authorization
+        - Dashboard Security
+        - Database Security
+        - Network/Transport
+        - Input Validation
+        - Output Encoding
+        - Session Management
+        - Cryptography
+        - Dependencies
+        - Configuration
+        - Infrastructure
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Security Issue Description
+      description: Describe the security issue or improvement
+      placeholder: Describe the security concern...
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential Impact
+      description: What could happen if this isn't addressed?
+      placeholder: Describe potential security impact...
+
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommended Fix
+      description: How should this be addressed?
+      placeholder: Suggest how to fix this issue...
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Any relevant security references (OWASP, CVE, etc.)
+      placeholder: |
+        - OWASP Reference
+        - CVE Number
+        - Security Best Practice Guide
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        **Remember**: For critical vulnerabilities, email security@kriir.com with:
+        - Detailed description
+        - Proof of concept (if safe)
+        - Suggested timeline for disclosure
+        - Your contact information

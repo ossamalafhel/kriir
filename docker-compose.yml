@@ -8,16 +8,16 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: cop_db
-      POSTGRES_USER: cop
-      POSTGRES_PASSWORD: cop
+      POSTGRES_DB: kriir_db
+      POSTGRES_USER: kriir
+      POSTGRES_PASSWORD: kriir
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     volumes:
       - postgis_data:/var/lib/postgresql/data
       - ./api/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./api/src/main/resources/function_notify_event.sql:/docker-entrypoint-initdb.d/02-functions.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cop -d cop_db"]
+      test: ["CMD-SHELL", "pg_isready -U kriir -d kriir_db"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -38,9 +38,9 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgis:5432/cop_db
-      - SPRING_DATASOURCE_USERNAME=cop
-      - SPRING_DATASOURCE_PASSWORD=cop
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgis:5432/kriir_db
+      - SPRING_DATASOURCE_USERNAME=kriir
+      - SPRING_DATASOURCE_PASSWORD=kriir
       - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
       postgis:

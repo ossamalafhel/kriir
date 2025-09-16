@@ -1,0 +1,98 @@
+name: ❓ Question
+description: Ask a question about COP
+title: "[Question]: "
+labels: ["question", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your question! This helps us improve our documentation and user experience.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission checklist
+      options:
+        - label: I've searched existing issues and discussions
+          required: true
+        - label: I've checked the documentation at docs/
+          required: true
+        - label: This is not a bug report (use Bug Report template instead)
+          required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What is your question about?
+      options:
+        - Installation & Setup
+        - Configuration
+        - Usage & Features
+        - API Documentation
+        - Ransomware Detection
+        - Kill-Chain Monitoring
+        - Automated Response
+        - ML Models & Predictions
+        - Integration
+        - Performance & Scaling
+        - Security & Privacy
+        - Contributing
+        - Business & Licensing
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: Ask your question here...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to accomplish?
+      placeholder: Describe what you're trying to do...
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What Have You Tried
+      description: What have you already attempted?
+      placeholder: Describe what you've already tried...
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: Your environment details
+      placeholder: |
+        - OS: [e.g. Ubuntu 22.04]
+        - COP Version: [e.g. v0.1.0]
+        - Deployment: [Docker/Kubernetes/Local]
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is this question?
+      options:
+        - Low - Just curious
+        - Medium - Blocking development
+        - High - Blocking production deployment
+        - Critical - Production issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Any other relevant details

@@ -1,8 +1,8 @@
-# COP - Cyber Risk Open Platform (Ransomware Focus) v2.0
+# KRIIR - Cyber Risk Open Platform (Ransomware Focus) v2.0
 
 ## Executive Summary
 
-**Product Name:** COP - Cyber Risk Open Platform (Ransomware Focused)  
+**Product Name:** KRIIR - Cyber Risk Open Platform (Ransomware Focused)  
 **Vision:** The world's most advanced ransomware prediction and prevention platform  
 **Mission:** Democratize enterprise-grade ransomware defense through open-source AI  
 **Tagline:** "Predict. Prevent. Protect. From Ransomware."
@@ -13,7 +13,7 @@
 
 ### 1.1 Product Definition
 
-COP v2.0 is specifically engineered to combat the ransomware epidemic through predictive AI, real-time monitoring, and automated prevention systems. Unlike general threat intelligence platforms, COP focuses exclusively on ransomware attack patterns, victim profiling, and attack path prediction.
+KRIIR v2.0 is specifically engineered to combat the ransomware epidemic through predictive AI, real-time monitoring, and automated prevention systems. Unlike general threat intelligence platforms, KRIIR focuses exclusively on ransomware attack patterns, victim profiling, and attack path prediction.
 
 ### 1.2 Market Context
 
@@ -109,12 +109,12 @@ graph TD
     style M fill:#ffebee,stroke:#d32f2f,stroke-width:3px
     style N fill:#ff1744,color:#ffffff,stroke:#b71c1c,stroke-width:3px
     
-    A -.->|"🛡️ COP Detection"| O[Kill-Chain Monitor]
-    B -.->|"🛡️ COP Detection"| O
-    C -.->|"🛡️ COP Detection"| O
-    G -.->|"🛡️ COP Detection"| O
-    I -.->|"🛡️ COP Detection"| O
-    L -.->|"🛡️ COP Detection"| O
+    A -.->|"🛡️ KRIIR Detection"| O[Kill-Chain Monitor]
+    B -.->|"🛡️ KRIIR Detection"| O
+    C -.->|"🛡️ KRIIR Detection"| O
+    G -.->|"🛡️ KRIIR Detection"| O
+    I -.->|"🛡️ KRIIR Detection"| O
+    L -.->|"🛡️ KRIIR Detection"| O
     
     O --> P[🚨 Automated Response]
     P --> Q[💾 Emergency Backup]
@@ -919,7 +919,7 @@ phase_2_advanced_intelligence:
 
 ## Conclusion
 
-COP v2.0 represents a paradigm shift in ransomware defense - from reactive recovery to predictive prevention. By focusing exclusively on the ransomware threat landscape, COP delivers unparalleled accuracy in attack prediction and automated defense capabilities.
+KRIIR v2.0 represents a paradigm shift in ransomware defense - from reactive recovery to predictive prevention. By focusing exclusively on the ransomware threat landscape, KRIIR delivers unparalleled accuracy in attack prediction and automated defense capabilities.
 
 **Revolutionary Capabilities:**
 - **92%+ Ransomware Prediction Accuracy** (48-72h advance warning)
@@ -928,7 +928,7 @@ COP v2.0 represents a paradigm shift in ransomware defense - from reactive recov
 - **Economic Impact Prevention** ($50M+ damages prevented annually)
 
 **Success Vision:**
-COP will become the global standard for ransomware defense, preventing thousands of attacks monthly and saving billions in economic damages while maintaining full transparency as an open-source solution.
+KRIIR will become the global standard for ransomware defense, preventing thousands of attacks monthly and saving billions in economic damages while maintaining full transparency as an open-source solution.
 
 ---
 
