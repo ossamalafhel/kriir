@@ -1,61 +1,112 @@
 spring:
   application:
-    name: @project.name@
-  jackson:
-    default-property-inclusion: non_absent
-    serialization:
-      write_dates_as_timestamps: false
-    deserialization:
-      adjust_dates_to_context_time_zone: false
-      fail_on_unknown_properties: false
-  mvc:
-    static-path-pattern: /static/**
-    throw-exception-if-no-handler-found: true
-  datasource:
-    continue-on-error: true
-    hikari:
-      minimum-idle: 2
-      maximum-pool-size: 10
-      data-source-properties:
-        socketTimeout: 120
-      leak-detection-threshold: 60000
-    username: rci
-    password: rci
-    url: jdbc:postgresql://localhost:5432/postgres
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
-        temp:
-          use_jdbc_metadata_defaults: false
-        jdbc:
-          driver-class-name: org.postgresql.Driver
-          batch_size: 100
-          batch_versioned_data: true
-        order_inserts: true
-        order_updates: true
-        ddl_auto: none
+    name: COP-Platform
+  
+  # R2DBC configuration for reactive database
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/cop_db?schema=public
+    username: cop
+    password: cop
+    pool:
+      enabled: true
+      max-size: 20
+      initial-size: 10
+      max-idle-time: 30m
+      
+  # Liquibase configuration
+  liquibase:
+    enabled: false # Disable for now, using manual schema
+    
+  # Actuator configuration
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics,prometheus
+    endpoint:
+      health:
+        show-details: always
 
-info:
-  service: ${spring.application.name}
-  runId: ${random.uuid}
-  dependencies:
-
-management:
-  context-path: /management
-
-endpoints:
-  health:
-    mapping.UNKNOWN: OK
-    mapping.DOWN: OK
-    mapping.OUT_OF_SERVICE: OK
-  info:
-    sensitive: true
-
+# Server configuration
 server:
-  compression:
-    enabled: false
-    mime-types: application/json
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
 
+# Logging
+logging:
+  level:
+    root: INFO
+    org.cyberisk.platform: DEBUG
+    org.springframework.r2dbc: DEBUG
+    io.r2dbc.postgresql: DEBUG
 
+# Application specific properties
+cop:
+  cors:
+    allowed-origins: 
+      - "http://localhost:3000"
+      - "http://localhost:3001"
+    allowed-methods: 
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    allow-credentials: true
+    
+  # Security monitoring configuration
+  monitoring:
+    incident-check-interval: PT10S # Check for new incidents every 10 seconds
+    asset-health-check-interval: PT30S # Check asset health every 30 seconds
+    
+# SpringDoc OpenAPI 3
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    try-it-out-enabled: true
+    filter: true
+  show-actuator: true
 
+---
+# Production profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+      
+  r2dbc:
+    url: ${DATABASE_URL:r2dbc:postgresql://postgres:5432/cop_db}
+    username: ${DATABASE_USER:cop}
+    password: ${DATABASE_PASSWORD}
+    
+server:
+  port: ${PORT:8080}
+
+logging:
+  level:
+    root: WARN
+    org.cyberisk.platform: INFO
+    
+cop:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://cop-platform.com}
+
+---
+# Development profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+      
+logging:
+  level:
+    root: DEBUG
+    org.cyberisk.platform: TRACE
