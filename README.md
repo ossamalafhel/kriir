@@ -61,8 +61,8 @@ Ransomware defense should be **accessible to all**. While enterprise solutions c
 ### One-Click Demo
 
 ```bash
-git clone https://github.com/ossamalafhel/cyberisk-open-platform.git
-cd cyberisk-open-platform
+git clone https://github.com/ossamalafhel/kriir.git
+cd kriir
 docker-compose up -d
 ```
 
@@ -75,8 +75,8 @@ Access your platform:
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/ossamalafhel/cyberisk-open-platform.git
-cd cyberisk-open-platform
+git clone https://github.com/ossamalafhel/kriir.git
+cd kriir
 cp .env.example .env
 # Edit .env with your settings
 
@@ -204,8 +204,8 @@ Join our growing community of security professionals building the future of rans
 
 We welcome contributions from security researchers, developers, and anyone passionate about stopping ransomware! 
 
-- 🐛 **Found a bug?** [Open an issue](https://github.com/ossamalafhel/cyberisk-open-platform/issues/new)
-- 💡 **Have an idea?** [Start a discussion](https://github.com/ossamalafhel/cyberisk-open-platform/discussions)
+- 🐛 **Found a bug?** [Open an issue](https://github.com/ossamalafhel/kriir/issues/new)
+- 💡 **Have an idea?** [Start a discussion](https://github.com/ossamalafhel/kriir/discussions)
 - 🔧 **Want to code?** Check our [Contributing Guide](docs/CONTRIBUTING.md)
 
 ---

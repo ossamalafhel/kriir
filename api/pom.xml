@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.cyberisk</groupId>
-    <artifactId>cyberisk-open-platform</artifactId>
+    <artifactId>kriir</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>CyberRisk Open Platform</name>
+    <name>KRIIR</name>
     <description>Open-source ransomware prediction and prevention platform with geospatial intelligence</description>
 
     <parent>

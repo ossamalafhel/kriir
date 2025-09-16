@@ -52,11 +52,11 @@ We pledge to make participation in our ransomware defense project a harassment-f
 # Fork the repository on GitHub
 
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/cyberisk-open-platform.git
-cd cyberisk-open-platform
+git clone https://github.com/YOUR_USERNAME/kriir.git
+cd kriir
 
 # Add upstream
-git remote add upstream https://github.com/ossamalafhel/cyberisk-open-platform.git
+git remote add upstream https://github.com/ossamalafhel/kriir.git
 
 # Configure GPG signing
 git config commit.gpgsign true
