@@ -38,7 +38,7 @@ server:
 logging:
   level:
     root: INFO
-    org.cyberisk.platform: DEBUG
+    com.kriir.platform: DEBUG
     org.springframework.r2dbc: DEBUG
     io.r2dbc.postgresql: DEBUG
 
@@ -93,7 +93,7 @@ server:
 logging:
   level:
     root: WARN
-    org.cyberisk.platform: INFO
+    com.kriir.platform: INFO
     
 kriir:
   cors:
@@ -109,4 +109,4 @@ spring:
 logging:
   level:
     root: DEBUG
-    org.cyberisk.platform: TRACE
+    com.kriir.platform: TRACE

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: COP-Platform-Test
+    name: KRIIR-Platform-Test
   r2dbc:
     url: r2dbc:h2:mem:///testdb?options=DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
@@ -10,5 +10,5 @@ spring:
 
 logging:
   level:
-    org.cyberisk: DEBUG
+    com.kriir: DEBUG
     org.springframework.r2dbc: DEBUG
