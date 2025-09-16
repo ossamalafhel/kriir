@@ -1,0 +1,42 @@
+version: '3.3'
+
+services:
+
+  postgis:
+    container_name: postgis
+    restart: always
+    image: kartoza/postgis:9.5-2.2
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+     - POSTGRES_USER=rci
+     - POSTGRES_PASS=rci
+     - ALLOW_IP_RANGE=0.0.0.0/0
+
+  front:
+    container_name: front
+    restart: always
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    depends_on:
+      - server
+    ports:
+      - '3000:3000'
+
+  server:
+    container_name: server
+    restart: always
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    depends_on:
+      - postgis
+    network_mode: host
+    volumes:
+      - '.:/usr/src/app'
+    ports:
+      - '8080:8080'
+
+

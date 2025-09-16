@@ -1,7 +1,5 @@
 package com.mobility.demo.controller;
 
-import com.mobility.demo.dto.request.CarSave;
-import com.mobility.demo.dto.request.CarsSearchWithinRadius;
 import com.mobility.demo.model.Car;
 import com.mobility.demo.service.CarService;
 import io.swagger.annotations.ApiOperation;
@@ -27,18 +25,7 @@ public class CarController {
     }
 
     @ApiOperation(
-            value = "Retrieve all cars",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            response = Car.class
-    )
-    @GetMapping("/allcars")
-    @ResponseStatus(HttpStatus.OK)
-    List<Car> allCars() {
-        return carService.getAll();
-    }
-
-    @ApiOperation(
-            value = "save car",
+            value = "save car update",
             produces = MediaType.APPLICATION_JSON_VALUE,
             response = Car.class
     )
@@ -48,21 +35,11 @@ public class CarController {
          carService.save(save);
     }
 
-    @ApiOperation(
-            value = "Search cars within a radius",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            response = Car.class
-    )
-    @GetMapping(path = "/getCarsWithinRadius")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Car> searchCarsWithinDistanceFromCoordinate(@ModelAttribute CarsSearchWithinRadius search) throws Exception {
-        return carService.findCarsWithinRadius(search);
-    }
 
     @CrossOrigin(origins = "*")
     @RequestMapping(method = RequestMethod.GET, value = "/cars")
     @ApiOperation(
-            value = "Retrieve all cars",
+            value = "Retrieve all cars update",
             produces = MediaType.TEXT_EVENT_STREAM_VALUE,
             response = Car.class
     )

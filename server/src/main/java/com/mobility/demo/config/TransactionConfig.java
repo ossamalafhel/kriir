@@ -1,6 +1,5 @@
 package com.mobility.demo.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,11 +31,13 @@ public class TransactionConfig {
     private final String SCHEMA = "classpath:schema.sql";
     private final String FUNCTION = "classpath:function_notify_event.sql";
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
+    private final ApplicationContext context;
 
-    @Autowired
-    private ApplicationContext context;
+    public TransactionConfig(Environment env, ApplicationContext context) {
+        this.env = env;
+        this.context = context;
+    }
 
     @Bean
     @Primary

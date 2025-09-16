@@ -2,7 +2,6 @@ package com.mobility.demo.controller;
 
 import com.mobility.demo.model.Car;
 import com.mobility.demo.model.User;
-import com.mobility.demo.model.repository.UserRepository;
 import com.mobility.demo.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.HttpStatus;
@@ -18,21 +17,14 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final UserRepository userRepository;
     private List<FluxSink<User>> userHandlers = new ArrayList<>();
 
-    public UserController(UserService userService, UserRepository userRepository) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.userRepository = userRepository;
-    }
-
-    @GetMapping("/allusers")
-    List<User> allUsers() {
-        return userRepository.findAll();
     }
 
     @ApiOperation(
-            value = "save car",
+            value = "save user update",
             produces = MediaType.APPLICATION_JSON_VALUE,
             response = Car.class
     )
@@ -45,11 +37,10 @@ public class UserController {
     @CrossOrigin(origins = "*")
     @RequestMapping(method = RequestMethod.GET, value = "/users")
     @ApiOperation(
-            value = "Retrieve all users",
+            value = "Retrieve all user update",
             produces = MediaType.APPLICATION_JSON_VALUE,
             response = User.class
     )
-
     public Flux<User> users() {
         return Flux.push(sink -> {
             userHandlers.add(sink);
