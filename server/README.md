@@ -83,17 +83,22 @@ mvn spring-boot:run
 
 ### Key Components
 
-```
-┌─────────────────────────────────────────────┐
-│            COP Platform Architecture        │
-├─────────────────────────────────────────────┤
-│  🎯 Ransomware Prediction Engine           │
-│  ⚡ Real-time Kill-Chain Monitor           │  
-│  🛡️ Automated Defense Orchestrator        │
-│  🔍 Threat Intelligence Processor          │
-│  📊 Risk Analytics & Scoring               │
-│  🔗 Insurance Integration APIs             │
-└─────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A[🎯 Ransomware Prediction Engine] --> F[COP Platform Architecture]
+    B[⚡ Real-time Kill-Chain Monitor] --> F
+    C[🛡️ Automated Defense Orchestrator] --> F
+    D[🔍 Threat Intelligence Processor] --> F
+    E[📊 Risk Analytics & Scoring] --> F
+    G[🔗 Insurance Integration APIs] --> F
+    
+    style F fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style A fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style B fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style C fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style D fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style E fill:#fff8e1,stroke:#f9a825,stroke-width:2px
+    style G fill:#e0f2f1,stroke:#00695c,stroke-width:2px
 ```
 
 ---

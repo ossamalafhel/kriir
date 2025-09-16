@@ -85,6 +85,48 @@ class RansomwareAttackPredictor:
 
 ### 2.2 Ransomware Kill-Chain Analysis
 
+#### Ransomware Attack Kill-Chain Flow
+
+```mermaid
+graph TD
+    A[🔍 Reconnaissance] --> B[🚪 Initial Access]
+    B --> C[⚡ Execution]
+    C --> D[📌 Persistence]
+    D --> E[⬆️ Privilege Escalation]
+    E --> F[🛡️ Defense Evasion]
+    F --> G[🔑 Credential Access]
+    G --> H[📋 Discovery]
+    H --> I[↔️ Lateral Movement]
+    I --> J[📦 Collection]
+    J --> K[🌐 Command & Control]
+    K --> L[📤 Exfiltration]
+    L --> M[🔒 Encryption]
+    M --> N[💰 Ransom Demand]
+    
+    style A fill:#e8f5e8,stroke:#388e3c
+    style B fill:#fff3e0,stroke:#f57c00
+    style C fill:#fce4ec,stroke:#c2185b
+    style M fill:#ffebee,stroke:#d32f2f,stroke-width:3px
+    style N fill:#ff1744,color:#ffffff,stroke:#b71c1c,stroke-width:3px
+    
+    A -.->|"🛡️ COP Detection"| O[Kill-Chain Monitor]
+    B -.->|"🛡️ COP Detection"| O
+    C -.->|"🛡️ COP Detection"| O
+    G -.->|"🛡️ COP Detection"| O
+    I -.->|"🛡️ COP Detection"| O
+    L -.->|"🛡️ COP Detection"| O
+    
+    O --> P[🚨 Automated Response]
+    P --> Q[💾 Emergency Backup]
+    P --> R[🔐 Network Isolation]
+    P --> S[📢 Critical Alerts]
+    
+    style O fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style P fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+```
+
+#### Implementation Details
+
 ```python
 class RansomwareKillChain:
     def __init__(self):
@@ -120,6 +162,78 @@ class RansomwareKillChain:
 ```
 
 ### 2.3 Ransomware-Specific Data Models
+
+#### Database Schema Overview
+
+```mermaid
+erDiagram
+    RANSOMWARE_GROUPS {
+        uuid id PK
+        varchar group_name
+        text[] aliases
+        timestamptz first_observed
+        timestamptz last_observed
+        text[] target_sectors
+        text[] target_regions
+        bigint average_ransom_demand
+        decimal success_rate
+        jsonb ttps
+        text[] encryption_methods
+        text[] payment_methods
+        text[] leak_site_urls
+    }
+    
+    VICTIM_PROFILES {
+        uuid id PK
+        varchar organization_name
+        varchar industry
+        varchar size_category
+        varchar revenue_range
+        geometry geography
+        integer security_maturity_score
+        jsonb attack_surface
+        integer previous_incidents
+        decimal cyber_insurance_coverage
+        integer backup_maturity_score
+    }
+    
+    RANSOMWARE_INCIDENTS {
+        uuid id PK
+        uuid victim_organization_id FK
+        uuid ransomware_group_id FK
+        timestamptz incident_date
+        timestamptz detection_date
+        varchar initial_access_vector
+        interval dwell_time
+        integer encrypted_systems
+        decimal ransom_demanded
+        decimal ransom_paid
+        interval recovery_time
+        decimal total_cost
+        boolean data_exfiltrated
+        boolean leak_site_published
+        jsonb attack_timeline
+    }
+    
+    ATTACK_PATHS {
+        uuid id PK
+        uuid victim_profile_id FK
+        text path_description
+        varchar entry_vector
+        text[] required_vulnerabilities
+        integer exploitation_difficulty
+        decimal success_probability
+        decimal detection_probability
+        decimal mitigation_cost
+        integer business_impact_score
+    }
+    
+    VICTIM_PROFILES ||--o{ RANSOMWARE_INCIDENTS : "targeted by"
+    RANSOMWARE_GROUPS ||--o{ RANSOMWARE_INCIDENTS : "executes"
+    VICTIM_PROFILES ||--o{ ATTACK_PATHS : "vulnerable to"
+```
+
+#### Detailed Schema Definitions
 
 ```sql
 -- Ransomware Groups and TTPs
