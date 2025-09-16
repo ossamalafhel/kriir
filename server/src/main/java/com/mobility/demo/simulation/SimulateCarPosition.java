@@ -7,7 +7,7 @@ import com.mobility.demo.model.User;
 import com.mobility.demo.model.repository.CarRepository;
 import com.mobility.demo.model.repository.UserRepository;
 import com.mobility.demo.util.GeometryFactory;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.java.Log;

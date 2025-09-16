@@ -10,7 +10,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import javax.sql.DataSource;
+import jakarta.sql.DataSource;
 
 @Configuration
 @PropertySource({ "classpath:notification-ds.properties" })

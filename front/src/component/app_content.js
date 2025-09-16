@@ -1,57 +1,42 @@
-import React from 'react'
-import Comp from './base/comp'
+import React, { useState, useEffect } from 'react'
+import { useSelector } from 'react-redux'
+import { selectCarsData, selectUsersData } from '../reducers/mobilitySlice'
 import InteractiveMap from './map/InteractiveMap'
 
-class AppContent extends Comp {
+function AppContent() {
+    const [windowDimensions, setWindowDimensions] = useState({
+        height: window.innerHeight,
+        width: window.innerWidth
+    });
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            windowDimensions: {
-                height: 100,
-                width: 100
-            }
-        };
-    }
+    const usersData = useSelector(selectUsersData);
+    const carsData = useSelector(selectCarsData);
 
-    componentDidMount() {
-        this._updateDimensions();
-        window.addEventListener("resize", this._updateDimensions);
-    }
-
-    _updateDimensions = () => {
-        this.setState({
-            windowDimensions: {
+    useEffect(() => {
+        const updateDimensions = () => {
+            setWindowDimensions({
                 height: window.innerHeight,
                 width: window.innerWidth
-            },
-        });
-    };
+            });
+        };
 
-    render() {
-        return (
-            <section>
-                {this._content()}
-            </section>
-        )
-    }
+        window.addEventListener("resize", updateDimensions);
+        
+        return () => {
+            window.removeEventListener("resize", updateDimensions);
+        };
+    }, []);
 
-    _content() {
-        const state = this.context.store.getState();
-        // console.log("state:", state);
-        const usersData = state.usersData;
-        const carsData = state.carsData;
-        return (
-            <section>
-                <InteractiveMap
-                    carsData={carsData}
-                    usersData={usersData}
-                    height={this.state.windowDimensions.height}
-                    width={this.state.windowDimensions.width}
-                />
-            </section>
-        )
-    }
+    return (
+        <section>
+            <InteractiveMap
+                carsData={carsData}
+                usersData={usersData}
+                height={windowDimensions.height}
+                width={windowDimensions.width}
+            />
+        </section>
+    )
 }
 
 export default AppContent

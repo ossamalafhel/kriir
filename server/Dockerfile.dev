@@ -1,0 +1,24 @@
+FROM eclipse-temurin:17-jdk-alpine
+
+# Install Maven
+RUN apk add --no-cache maven
+
+# Set working directory
+WORKDIR /app
+
+# Copy Maven files
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+
+# Download dependencies
+RUN ./mvnw dependency:go-offline -B
+
+# Copy source code
+COPY src src
+
+# Expose ports (app and debug)
+EXPOSE 8080 5005
+
+# Development command with hot reload
+CMD ["./mvnw", "spring-boot:run", "-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"]

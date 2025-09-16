@@ -1,10 +1,10 @@
 package com.mobility.demo.util;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class GeometryFactory {
 
-    private static final com.vividsolutions.jts.geom.GeometryFactory GEOMETRY_FACTORY = new com.vividsolutions.jts.geom.GeometryFactory();
+    private static final org.locationtech.jts.geom.GeometryFactory GEOMETRY_FACTORY = new org.locationtech.jts.geom.GeometryFactory();
     private static final WKTReader READER = new WKTReader(GEOMETRY_FACTORY);
 
     private GeometryFactory() {

@@ -1,7 +1,7 @@
 package com.mobility.demo.model.repository;
 
 import com.mobility.demo.model.Car;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

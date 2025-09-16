@@ -1,11 +1,19 @@
-import { createStore } from 'redux'
-import mainReducer from './main_reducer'
+import { configureStore } from '@reduxjs/toolkit'
+import { mobilitySlice } from './mobilitySlice'
 
-const reduxDevExtension = window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__();
+const store = configureStore({
+  reducer: {
+    mobility: mobilitySlice.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST'],
+      },
+    }),
+  devTools: process.env.NODE_ENV !== 'production',
+})
 
-const storeInstance = createStore(
-  mainReducer,
-  reduxDevExtension
-)
-
-export default storeInstance
+export default store
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch

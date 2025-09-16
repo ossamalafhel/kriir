@@ -1,15 +1,16 @@
 import store from '../reducers/store'
+import { updateCars, updateUsers } from '../reducers/mobilitySlice'
 
 const userActions = {
     update: (newUsersPosition) => {
-        store.dispatch({type: "USERS_UPDATE", id:newUsersPosition.id, x: newUsersPosition.x, y: newUsersPosition.y})
+        store.dispatch(updateUsers(newUsersPosition))
     },
 };
 
 const carActions = {
     update: (newCarsPosition) => {
-        store.dispatch({type: "CARS_UPDATE", id: newCarsPosition.id, x: newCarsPosition.x, y: newCarsPosition.y})
+        store.dispatch(updateCars(newCarsPosition))
     },
 };
 
-export  {userActions, carActions}
+export { userActions, carActions }

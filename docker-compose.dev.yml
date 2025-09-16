@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgis:
+    container_name: reactive-transactional-postgis-dev
+    image: postgis/postgis:15-3.4-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: mobility_db
+      POSTGRES_USER: rci
+      POSTGRES_PASSWORD: rci
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgis_dev_data:/var/lib/postgresql/data
+      - ./server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./server/src/main/resources/function_notify_event.sql:/docker-entrypoint-initdb.d/02-functions.sql
+    networks:
+      - mobility-network
+
+  server:
+    container_name: reactive-transactional-server-dev
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Debug port
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgis:5432/mobility_db
+      - SPRING_DATASOURCE_USERNAME=rci
+      - SPRING_DATASOURCE_PASSWORD=rci
+      - JAVA_OPTS=-Xmx512m -Xms256m -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+    depends_on:
+      - postgis
+    volumes:
+      - ./server/src:/app/src
+      - ./server/target:/app/target
+      - maven_cache:/root/.m2
+    networks:
+      - mobility-network
+
+  front:
+    container_name: reactive-transactional-front-dev
+    build:
+      context: ./front
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_URL=http://localhost:8080
+    volumes:
+      - ./front/src:/app/src
+      - ./front/public:/app/public
+      - node_modules:/app/node_modules
+    networks:
+      - mobility-network
+
+volumes:
+  postgis_dev_data:
+    driver: local
+  maven_cache:
+    driver: local
+  node_modules:
+    driver: local
+
+networks:
+  mobility-network:
+    driver: bridge

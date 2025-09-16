@@ -10,9 +10,15 @@ export const MarkerSvg = ({ color }) => (
 );
 
 const Marker = ({ color, text, xy }) => (
-    <RMarker latitude={xy.x} longitude={xy.y} offsetLeft={-20} offsetTop={-10}>
-        {MarkerSvg({ color })}
-        <div className="marker">{text}</div>
+    <RMarker 
+        latitude={xy.x} 
+        longitude={xy.y} 
+        anchor="center"
+    >
+        <div style={{ transform: 'translate(-10px, -10px)' }}>
+            <MarkerSvg color={color} />
+            <div className="marker">{text}</div>
+        </div>
     </RMarker>
 );
 
