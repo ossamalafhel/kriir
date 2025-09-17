@@ -1,7 +1,8 @@
 package com.kriir.platform;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.annotations.QuarkusMain;
 
 /**
  * KRIIR - CyberRisk Open Platform
@@ -13,10 +14,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Ossama Lafhel
  * @since 1.0.0
  */
-@SpringBootApplication
-public class KriirPlatformApplication {
+@QuarkusMain
+public class KriirPlatformApplication implements QuarkusApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(KriirPlatformApplication.class, args);
+        Quarkus.run(KriirPlatformApplication.class, args);
+    }
+
+    @Override
+    public int run(String... args) throws Exception {
+        Quarkus.waitForExit();
+        return 0;
     }
 }

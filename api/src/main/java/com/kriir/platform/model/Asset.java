@@ -1,39 +1,37 @@
 package com.kriir.platform.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
-import org.springframework.data.relational.core.mapping.Column;
-
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Table("asset")
-public class Asset {
+@Entity
+@Table(name = "asset")
+public class Asset extends PanacheEntityBase {
 
     @Id
-    private String id;
+    public String id;
     
-    @Column("name")
-    private String name;
+    @Column(name = "name")
+    public String name;
     
-    @Column("type")
-    private String type;
+    @Column(name = "type")
+    public String type;
     
-    @Column("criticality")
-    private String criticality;
+    @Column(name = "criticality")
+    public String criticality;
     
-    @Column("status")
-    private String status = "ACTIVE";
+    @Column(name = "status")
+    public String status = "ACTIVE";
     
-    @Column("x")
-    private double x;
+    @Column(name = "x")
+    public double x;
     
-    @Column("y")
-    private double y;
+    @Column(name = "y")
+    public double y;
     
-    @Column("last_seen")
-    private LocalDateTime lastSeen = LocalDateTime.now();
+    @Column(name = "last_seen")
+    public LocalDateTime lastSeen = LocalDateTime.now();
 
     public Asset() {
         this.id = UUID.randomUUID().toString();
@@ -46,71 +44,6 @@ public class Asset {
         this.criticality = criticality;
         this.x = x;
         this.y = y;
-    }
-
-    // Getters and Setters
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getCriticality() {
-        return criticality;
-    }
-
-    public void setCriticality(String criticality) {
-        this.criticality = criticality;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public double getX() {
-        return x;
-    }
-
-    public void setX(double x) {
-        this.x = x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public void setY(double y) {
-        this.y = y;
-    }
-
-    public LocalDateTime getLastSeen() {
-        return lastSeen;
-    }
-
-    public void setLastSeen(LocalDateTime lastSeen) {
-        this.lastSeen = lastSeen;
     }
 
     @Override

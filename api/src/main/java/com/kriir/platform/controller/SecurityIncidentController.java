@@ -4,175 +4,216 @@ import com.kriir.platform.dto.SecurityIncidentDto;
 import com.kriir.platform.dto.CreateSecurityIncidentRequest;
 import com.kriir.platform.mapper.SecurityIncidentMapper;
 import com.kriir.platform.service.SecurityIncidentService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
+import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.Multi;
+import io.quarkus.hibernate.reactive.panache.common.WithSession;
+import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
+import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.Map;
+import java.util.List;
 
-@RestController
-@RequestMapping("/api/incidents")
-@CrossOrigin(origins = "*")
+@Path("/api/incidents")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class SecurityIncidentController {
 
-    private final SecurityIncidentService securityIncidentService;
-    private final SecurityIncidentMapper securityIncidentMapper;
+    @Inject
+    SecurityIncidentService securityIncidentService;
+    
+    @Inject
+    SecurityIncidentMapper securityIncidentMapper;
 
-    @Autowired
-    public SecurityIncidentController(SecurityIncidentService securityIncidentService, SecurityIncidentMapper securityIncidentMapper) {
-        this.securityIncidentService = securityIncidentService;
-        this.securityIncidentMapper = securityIncidentMapper;
-    }
-
-    @GetMapping
-    public Flux<SecurityIncidentDto> getAllIncidents() {
+    @GET
+    public Uni<List<SecurityIncidentDto>> getAllIncidents() {
         return securityIncidentService.findAll()
-            .map(securityIncidentMapper::toDto);
+                .onItem().transform(incidents -> incidents.stream()
+                        .map(securityIncidentMapper::toDto)
+                        .toList());
     }
 
-    @GetMapping("/{id}")
-    public Mono<ResponseEntity<SecurityIncidentDto>> getIncidentById(@PathVariable String id) {
+    @GET
+    @Path("/{id}")
+    @WithSession
+    public Uni<Response> getIncidentById(@PathParam("id") String id) {
         return securityIncidentService.findById(id)
-            .map(securityIncidentMapper::toDto)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+                .onItem().ifNotNull().transform(incident -> Response.ok(securityIncidentMapper.toDto(incident)).build())
+                .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND).build());
     }
 
-    @GetMapping("/status/{status}")
-    public Flux<SecurityIncidentDto> getIncidentsByStatus(@PathVariable String status) {
-        return securityIncidentService.findByStatus(status)
-            .map(securityIncidentMapper::toDto);
+    @POST
+    @WithTransaction
+    public Uni<Response> createIncident(@Valid CreateSecurityIncidentRequest request) {
+        return securityIncidentService.create(request)
+                .onItem().transform(incident -> Response.status(Response.Status.CREATED)
+                        .entity(securityIncidentMapper.toDto(incident))
+                        .build());
     }
 
-    @GetMapping("/severity/{severity}")
-    public Flux<SecurityIncidentDto> getIncidentsBySeverity(@PathVariable String severity) {
-        return securityIncidentService.findBySeverity(severity)
-            .map(securityIncidentMapper::toDto);
+    @PUT
+    @Path("/{id}")
+    @WithTransaction
+    public Uni<Response> updateIncident(@PathParam("id") String id, @Valid CreateSecurityIncidentRequest request) {
+        return securityIncidentService.update(id, request)
+                .onItem().ifNotNull().transform(incident -> Response.ok(securityIncidentMapper.toDto(incident)).build())
+                .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND).build());
     }
 
-    @GetMapping("/type/{type}")
-    public Flux<SecurityIncidentDto> getIncidentsByType(@PathVariable String type) {
+    @DELETE
+    @Path("/{id}")
+    @WithTransaction
+    public Uni<Response> deleteIncident(@PathParam("id") String id) {
+        return securityIncidentService.delete(id)
+                .onItem().transform(deleted -> deleted ? 
+                        Response.noContent().build() : 
+                        Response.status(Response.Status.NOT_FOUND).build());
+    }
+
+    @GET
+    @Path("/type/{type}")
+    public Uni<List<SecurityIncidentDto>> getIncidentsByType(@PathParam("type") String type) {
         return securityIncidentService.findByType(type)
-            .map(securityIncidentMapper::toDto);
+                .onItem().transform(incidents -> incidents.stream()
+                        .map(securityIncidentMapper::toDto)
+                        .toList());
     }
 
-    @GetMapping("/asset/{assetId}")
-    public Flux<SecurityIncidentDto> getIncidentsByAsset(@PathVariable String assetId) {
+    @GET
+    @Path("/severity/{severity}")
+    public Uni<List<SecurityIncidentDto>> getIncidentsBySeverity(@PathParam("severity") String severity) {
+        return securityIncidentService.findBySeverity(severity)
+                .onItem().transform(incidents -> incidents.stream()
+                        .map(securityIncidentMapper::toDto)
+                        .toList());
+    }
+
+    @GET
+    @Path("/status/{status}")
+    public Uni<List<SecurityIncidentDto>> getIncidentsByStatus(@PathParam("status") String status) {
+        return securityIncidentService.findByStatus(status)
+                .onItem().transform(incidents -> incidents.stream()
+                        .map(securityIncidentMapper::toDto)
+                        .toList());
+    }
+
+    @GET
+    @Path("/asset/{assetId}")
+    public Uni<List<SecurityIncidentDto>> getIncidentsByAsset(@PathParam("assetId") String assetId) {
         return securityIncidentService.findByAffectedAssetId(assetId)
-            .map(securityIncidentMapper::toDto);
+                .onItem().transform(incidents -> incidents.stream()
+                        .map(securityIncidentMapper::toDto)
+                        .toList());
     }
 
-    @GetMapping("/location")
-    public Flux<SecurityIncidentDto> getIncidentsByLocation(
-            @RequestParam double minX,
-            @RequestParam double maxX,
-            @RequestParam double minY,
-            @RequestParam double maxY) {
+    @GET
+    @Path("/location")
+    public Uni<List<SecurityIncidentDto>> getIncidentsByLocation(
+            @QueryParam("minX") double minX,
+            @QueryParam("maxX") double maxX,
+            @QueryParam("minY") double minY,
+            @QueryParam("maxY") double maxY) {
         return securityIncidentService.findByLocationBounds(minX, maxX, minY, maxY)
-            .map(securityIncidentMapper::toDto);
+                .onItem().transform(incidents -> incidents.stream()
+                        .map(securityIncidentMapper::toDto)
+                        .toList());
     }
 
-    @GetMapping("/open")
-    public Flux<SecurityIncidentDto> getOpenIncidents() {
+    @GET
+    @Path("/open")
+    public Uni<List<SecurityIncidentDto>> getOpenIncidents() {
         return securityIncidentService.findOpenIncidents()
-            .map(securityIncidentMapper::toDto);
+                .onItem().transform(incidents -> incidents.stream()
+                        .map(securityIncidentMapper::toDto)
+                        .toList());
     }
 
-    @GetMapping("/critical")
-    public Flux<SecurityIncidentDto> getCriticalIncidents() {
+    @GET
+    @Path("/critical")
+    public Uni<List<SecurityIncidentDto>> getCriticalIncidents() {
         return securityIncidentService.findCriticalIncidents()
-            .map(securityIncidentMapper::toDto);
+                .onItem().transform(incidents -> incidents.stream()
+                        .map(securityIncidentMapper::toDto)
+                        .toList());
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<SecurityIncidentDto> createIncident(@Valid @RequestBody CreateSecurityIncidentRequest request) {
-        return Mono.just(securityIncidentMapper.toEntity(request))
-            .flatMap(securityIncidentService::save)
-            .map(securityIncidentMapper::toDto);
+    @GET
+    @Path("/recent")
+    public Uni<List<SecurityIncidentDto>> getRecentIncidents(@QueryParam("hours") @DefaultValue("24") int hours) {
+        return securityIncidentService.findRecent(hours)
+                .onItem().transform(incidents -> incidents.stream()
+                        .map(securityIncidentMapper::toDto)
+                        .toList());
     }
 
-    @PutMapping("/{id}")
-    public Mono<ResponseEntity<SecurityIncidentDto>> updateIncident(
-            @PathVariable String id,
-            @Valid @RequestBody CreateSecurityIncidentRequest request) {
-        return securityIncidentService.findById(id)
-            .flatMap(incident -> {
-                securityIncidentMapper.updateEntity(incident, request);
-                return securityIncidentService.save(incident);
-            })
-            .map(securityIncidentMapper::toDto)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
-    }
 
-    @PatchMapping("/{id}/status")
-    public Mono<ResponseEntity<SecurityIncidentDto>> updateIncidentStatus(
-            @PathVariable String id,
-            @RequestBody Map<String, String> statusUpdate) {
-        String newStatus = statusUpdate.get("status");
-        if (newStatus == null || newStatus.isEmpty()) {
-            return Mono.just(ResponseEntity.badRequest().build());
-        }
-        
-        return securityIncidentService.updateStatus(id, newStatus)
-            .map(securityIncidentMapper::toDto)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
-    }
-
-    @PatchMapping("/{id}/assign")
-    public Mono<ResponseEntity<SecurityIncidentDto>> assignIncident(
-            @PathVariable String id,
-            @RequestBody Map<String, String> assignmentUpdate) {
-        String assignee = assignmentUpdate.get("assignedTo");
-        if (assignee == null || assignee.isEmpty()) {
-            return Mono.just(ResponseEntity.badRequest().build());
-        }
-        
-        return securityIncidentService.assignTo(id, assignee)
-            .map(securityIncidentMapper::toDto)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping("/{id}/resolve")
-    public Mono<ResponseEntity<SecurityIncidentDto>> resolveIncident(
-            @PathVariable String id,
-            @RequestBody Map<String, String> resolutionData) {
-        String resolution = resolutionData.get("resolution");
-        
+    @POST
+    @Path("/{id}/resolve")
+    @WithTransaction
+    public Uni<Response> resolveIncident(@PathParam("id") String id, Map<String, String> body) {
+        String resolution = body != null ? body.get("resolution") : null;
         return securityIncidentService.resolve(id, resolution)
-            .map(securityIncidentMapper::toDto)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+                .onItem().ifNotNull().transform(incident -> Response.ok(securityIncidentMapper.toDto(incident)).build())
+                .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND).build());
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Mono<Void> deleteIncident(@PathVariable String id) {
-        return securityIncidentService.deleteById(id);
+    @PATCH
+    @Path("/{id}/status")
+    @WithTransaction
+    public Uni<Response> updateIncidentStatus(@PathParam("id") String id, Map<String, String> body) {
+        if (body == null || body.get("status") == null || body.get("status").isEmpty()) {
+            return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
+        }
+        String status = body.get("status");
+        return securityIncidentService.updateStatus(id, status)
+                .onItem().ifNotNull().transform(incident -> Response.ok(securityIncidentMapper.toDto(incident)).build())
+                .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND).build());
     }
 
-    @GetMapping("/count")
-    public Mono<Map<String, Long>> getIncidentCount() {
+    @PATCH
+    @Path("/{id}/assign")
+    @WithTransaction
+    public Uni<Response> assignIncident(@PathParam("id") String id, Map<String, String> body) {
+        if (body == null || body.get("assignedTo") == null || body.get("assignedTo").isEmpty()) {
+            return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST).build());
+        }
+        String assignee = body.get("assignedTo");
+        return securityIncidentService.assignTo(id, assignee)
+                .onItem().ifNotNull().transform(incident -> Response.ok(securityIncidentMapper.toDto(incident)).build())
+                .onItem().ifNull().continueWith(Response.status(Response.Status.NOT_FOUND).build());
+    }
+
+    @GET
+    @Path("/count")
+    @WithSession
+    public Uni<Response> getIncidentCount() {
         return securityIncidentService.count()
-            .map(count -> Map.of("count", count));
+                .onItem().transform(count -> Response.ok(Map.of("count", count)).build());
     }
 
-    @GetMapping("/count/status/{status}")
-    public Mono<Map<String, Long>> getIncidentCountByStatus(@PathVariable String status) {
+    @GET
+    @Path("/count/status/{status}")
+    @WithSession
+    public Uni<Response> getIncidentCountByStatus(@PathParam("status") String status) {
         return securityIncidentService.countByStatus(status)
-            .map(count -> Map.of("count", count));
+                .onItem().transform(count -> Response.ok(Map.of("count", count)).build());
     }
 
-    @GetMapping("/count/severity/{severity}")
-    public Mono<Map<String, Long>> getIncidentCountBySeverity(@PathVariable String severity) {
+    @GET
+    @Path("/count/severity/{severity}")
+    @WithSession
+    public Uni<Response> getIncidentCountBySeverity(@PathParam("severity") String severity) {
         return securityIncidentService.countBySeverity(severity)
-            .map(count -> Map.of("count", count));
+                .onItem().transform(count -> Response.ok(Map.of("count", count)).build());
+    }
+
+    @GET
+    @Path("/stats")
+    @WithSession
+    public Uni<Response> getIncidentStats() {
+        return securityIncidentService.getStatistics()
+                .onItem().transform(stats -> Response.ok(stats).build());
     }
 }

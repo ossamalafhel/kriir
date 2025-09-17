@@ -476,4 +476,6 @@ public class ReactiveAssetService {
 
 ---
 
-Built by **Ossama Lafhel** - [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)
+## Contributors
+
+This is an open-source project maintained by the community. For contributions, please see CONTRIBUTING.md.

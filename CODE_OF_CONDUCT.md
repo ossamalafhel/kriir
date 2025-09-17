@@ -37,7 +37,7 @@ This Code of Conduct applies within all community spaces, and also applies when 
 
 ## Enforcement
 
-Instances of unacceptable behavior may be reported to the community leaders at conduct@kriir.com. All complaints will be reviewed and investigated promptly and fairly.
+Instances of unacceptable behavior may be reported to the community leaders at conduct@your-email.com. All complaints will be reviewed and investigated promptly and fairly.
 
 ## Security Research Ethics
 
@@ -51,12 +51,14 @@ As a cybersecurity-focused project, we have additional guidelines:
 ## Contact
 
 For questions about this Code of Conduct:
-- Email: conduct@kriir.com
-- Security issues: security@kriir.com
-- General inquiries: hello@kriir.com
+- Email: conduct@your-email.com
+- Security issues: security@your-email.com
+- General inquiries: hello@your-email.com
 
 ---
 
 This Code of Conduct is adapted from the Contributor Covenant, version 2.0.
 
-Built by **KRIIR.com** - Revolutionizing ransomware defense
+## Contributors
+
+This is an open-source project maintained by the community. For contributions, please see CONTRIBUTING.md.

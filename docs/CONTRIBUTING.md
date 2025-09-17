@@ -1,6 +1,6 @@
-# Contributing to KRIIR - CyberRisk Open Platform
+# Contributing to COP - CyberRisk Open Platform
 
-Thank you for your interest in contributing to the KRIIR ransomware defense platform! This guide will help you contribute to making organizations safer from ransomware attacks.
+Thank you for your interest in contributing to the COP ransomware defense platform! This guide will help you contribute to making organizations safer from ransomware attacks.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ Thank you for your interest in contributing to the KRIIR ransomware defense plat
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code. Please report unacceptable behavior to [conduct@kriir.com](mailto:conduct@kriir.com).
+This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code. Please report unacceptable behavior to the project maintainers.
 
 ### Our Pledge
 
@@ -52,11 +52,11 @@ We pledge to make participation in our ransomware defense project a harassment-f
 # Fork the repository on GitHub
 
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/kriir.git
-cd kriir
+git clone https://github.com/YOUR_USERNAME/cop-platform.git
+cd cop-platform
 
 # Add upstream
-git remote add upstream https://github.com/ossamalafhel/kriir.git
+git remote add upstream https://github.com/your-org/cop-platform.git
 
 # Configure GPG signing
 git config commit.gpgsign true
@@ -612,29 +612,29 @@ Include before/after screenshots
 
 ## Getting Help
 
-- **Security Issues**: [security@kriir.com](mailto:security@kriir.com)
-- **Discord**: #kriir-contributors channel
-- **Office Hours**: Thursdays 3-4 PM UTC
-- **Documentation**: [docs.kriir.com](https://docs.kriir.com)
+- **Security Issues**: See SECURITY.md for reporting details
+- **Discord**: Community channel (if available)
+- **Documentation**: See docs/ directory
 
 ## Recognition
 
 Contributors are recognized in:
 - CONTRIBUTORS.md file
 - Release notes
-- Annual security researcher awards
-- KRIIR Hall of Fame
+- Project documentation
 
 ## Responsible Disclosure
 
 For security vulnerabilities:
-1. Email [security@kriir.com](mailto:security@kriir.com)
-2. Use PGP encryption (key in SECURITY.md)
-3. Allow 90 days for patching
+1. See SECURITY.md for reporting procedures
+2. Use responsible disclosure practices
+3. Allow reasonable time for patching
 4. Coordinated disclosure
 
 ---
 
 Thank you for contributing to making the world safer from ransomware! 🛡️
 
-Built by **KRIIR** - [hello@kriir.com](mailto:hello@kriir.com)
+## Contributors
+
+This is an open-source project maintained by the community. Thank you for contributing!

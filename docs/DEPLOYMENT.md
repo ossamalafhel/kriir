@@ -124,8 +124,8 @@ cop:
 
 ```bash
 # Clone repository
-git clone https://github.com/ossamalafhel/cyberisk-open-platform.git
-cd cyberisk-open-platform
+git clone https://github.com/your-org/cop-platform.git
+cd cop-platform
 
 # Create environment file
 cp .env.example .env
@@ -229,8 +229,8 @@ services:
     depends_on:
       - backend
     environment:
-      REACT_APP_API_URL: https://api.cop-platform.org
-      REACT_APP_WS_URL: wss://api.cop-platform.org
+      REACT_APP_API_URL: https://api.your-domain.com
+      REACT_APP_WS_URL: wss://api.your-domain.com
     deploy:
       replicas: 2
       resources:
@@ -421,10 +421,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - api.cop-platform.org
+    - api.your-domain.com
     secretName: cop-tls
   rules:
-  - host: api.cop-platform.org
+  - host: api.your-domain.com
     http:
       paths:
       - path: /
@@ -919,4 +919,6 @@ kubectl exec -n cop-platform redis-0 -- redis-cli INFO memory
 
 ---
 
-Built by **Ossama Lafhel** - [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)
+## Contributors
+
+This is an open-source project maintained by the community. For contributions, please see CONTRIBUTING.md.

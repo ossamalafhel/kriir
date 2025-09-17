@@ -3,32 +3,30 @@ package com.kriir.platform.mapper;
 import com.kriir.platform.dto.AssetDto;
 import com.kriir.platform.dto.CreateAssetRequest;
 import com.kriir.platform.model.Asset;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@QuarkusTest
 @DisplayName("AssetMapper Tests")
 class AssetMapperTest {
     
-    private AssetMapper assetMapper;
-    
-    @BeforeEach
-    void setUp() {
-        assetMapper = new AssetMapper();
-    }
+    @Inject
+    AssetMapper assetMapper;
     
     @Test
     @DisplayName("Should map Asset to AssetDto correctly")
     void testToDto() {
         Asset asset = new Asset("Server", "SERVER", "HIGH", 1.0, 2.0);
-        asset.setId("test-id");
-        asset.setStatus("ACTIVE");
+        asset.id = "test-id";
+        asset.status = "ACTIVE";
         LocalDateTime now = LocalDateTime.now();
-        asset.setLastSeen(now);
+        asset.lastSeen = now;
         
         AssetDto dto = assetMapper.toDto(asset);
         
@@ -60,14 +58,14 @@ class AssetMapperTest {
         Asset asset = assetMapper.toEntity(request);
         
         assertThat(asset).isNotNull();
-        assertThat(asset.getId()).isNotNull(); // Generated UUID
-        assertThat(asset.getName()).isEqualTo("Server");
-        assertThat(asset.getType()).isEqualTo("SERVER");
-        assertThat(asset.getCriticality()).isEqualTo("HIGH");
-        assertThat(asset.getX()).isEqualTo(1.0);
-        assertThat(asset.getY()).isEqualTo(2.0);
-        assertThat(asset.getStatus()).isEqualTo("ACTIVE"); // Default
-        assertThat(asset.getLastSeen()).isNotNull(); // Default
+        assertThat(asset.id).isNotNull(); // Generated UUID
+        assertThat(asset.name).isEqualTo("Server");
+        assertThat(asset.type).isEqualTo("SERVER");
+        assertThat(asset.criticality).isEqualTo("HIGH");
+        assertThat(asset.x).isEqualTo(1.0);
+        assertThat(asset.y).isEqualTo(2.0);
+        assertThat(asset.status).isEqualTo("ACTIVE"); // Default
+        assertThat(asset.lastSeen).isNotNull(); // Default
     }
     
     @Test
@@ -87,11 +85,11 @@ class AssetMapperTest {
         
         assetMapper.updateEntity(asset, request);
         
-        assertThat(asset.getName()).isEqualTo("NewName");
-        assertThat(asset.getType()).isEqualTo("NEW_TYPE");
-        assertThat(asset.getCriticality()).isEqualTo("HIGH");
-        assertThat(asset.getX()).isEqualTo(1.0);
-        assertThat(asset.getY()).isEqualTo(2.0);
+        assertThat(asset.name).isEqualTo("NewName");
+        assertThat(asset.type).isEqualTo("NEW_TYPE");
+        assertThat(asset.criticality).isEqualTo("HIGH");
+        assertThat(asset.x).isEqualTo(1.0);
+        assertThat(asset.y).isEqualTo(2.0);
     }
     
     @Test
@@ -109,7 +107,7 @@ class AssetMapperTest {
         // Test null request
         assetMapper.updateEntity(asset, null);
         // Should not modify asset
-        assertThat(asset.getName()).isEqualTo("Name");
-        assertThat(asset.getType()).isEqualTo("TYPE");
+        assertThat(asset.name).isEqualTo("Name");
+        assertThat(asset.type).isEqualTo("TYPE");
     }
 }

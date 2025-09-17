@@ -1,16 +1,12 @@
 package com.kriir.platform;
 
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@TestPropertySource(properties = {"spring.main.web-application-type=none"})
+@QuarkusTest
 @DisplayName("KriirPlatformApplication Tests")
 class KriirPlatformApplicationTest {
 
@@ -33,6 +29,6 @@ class KriirPlatformApplicationTest {
     @Test
     @DisplayName("Context loads")
     void contextLoads() {
-        // This test verifies that the Spring context can be loaded
+        // This test verifies that the Quarkus context can be loaded
     }
 }

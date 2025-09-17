@@ -1,11 +1,11 @@
 # API Documentation - COP Platform
 
-This document provides comprehensive API documentation for the COP - CyberRisk Open Platform with ransomware defense focus.
+This document provides comprehensive API documentation for the COP - CyberRisk Open Platform, an open-source ransomware defense system.
 
 ## Base URL
 
 - **Development**: `http://localhost:8080`
-- **Production**: `https://api.cop-platform.org`
+- **Production**: `https://api.your-domain.com` (configure for your deployment)
 
 ## Authentication
 
@@ -112,7 +112,7 @@ curl -X POST "http://localhost:8080/api/v1/predictions/ransomware-risk" \
 event: killchain-alert
 data: {
   "id": "evt-123",
-  "timestamp": "2025-01-15T10:30:00Z",
+  "timestamp": "2025-09-15T10:30:00Z",
   "stage": "lateral_movement",
   "confidence": 0.89,
   "affectedAssets": ["srv-01", "wks-42"],
@@ -173,7 +173,7 @@ data: {
       "status": "sent"
     }
   ],
-  "timestamp": "2025-01-15T10:32:00Z"
+  "timestamp": "2025-09-15T10:32:00Z"
 }
 ```
 
@@ -208,7 +208,7 @@ data: {
       },
       "riskScore": 8.5,
       "vulnerabilities": 3,
-      "lastSeen": "2025-01-15T10:00:00Z"
+      "lastSeen": "2025-09-15T10:00:00Z"
     }
   ],
   "totalElements": 150,
@@ -281,7 +281,7 @@ curl "http://localhost:8080/api/v1/assets/nearby?x=-74.0060&y=40.7128&radius=100
       "severity": "critical",
       "type": "ransomware_indicators",
       "status": "investigating",
-      "detectedAt": "2025-01-15T09:45:00Z",
+      "detectedAt": "2025-09-15T09:45:00Z",
       "affectedAssets": 5,
       "indicators": [
         "Mass file encryption activity",
@@ -339,7 +339,7 @@ curl "http://localhost:8080/api/v1/assets/nearby?x=-74.0060&y=40.7128&radius=100
   "period": "30d",
   "trends": [
     {
-      "date": "2025-01-01",
+      "date": "2025-09-01",
       "attacks": 12,
       "prevented": 10,
       "successRate": 0.83
@@ -435,7 +435,7 @@ All endpoints follow consistent error response format:
 
 ```json
 {
-  "timestamp": "2025-01-15T10:00:00Z",
+  "timestamp": "2025-09-15T10:00:00Z",
   "status": 400,
   "error": "Bad Request",
   "message": "Invalid organization data",
@@ -483,4 +483,6 @@ The complete OpenAPI 3.0 specification is available at:
 
 ---
 
-Built by **Ossama Lafhel** - [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)
+## Contributors
+
+This is an open-source project maintained by the community. For contributions, please see CONTRIBUTING.md.

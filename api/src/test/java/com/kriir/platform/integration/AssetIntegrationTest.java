@@ -1,114 +1,125 @@
 package com.kriir.platform.integration;
 
-import com.kriir.platform.model.Asset;
-import com.kriir.platform.config.IntegrationTestConfig;
+import com.kriir.platform.dto.CreateAssetRequest;
+import com.kriir.platform.TestDatasourceConfig;
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
-import java.time.Duration;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.jupiter.api.Disabled;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Disabled("Temporarily disabled due to R2DBC connection issues")
-@AutoConfigureWebTestClient
-@TestPropertySource(locations = "classpath:application-test.yml")
-@Import(IntegrationTestConfig.class)
+@QuarkusTest
+@QuarkusTestResource(TestDatasourceConfig.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Asset Integration Tests")
 class AssetIntegrationTest {
 
-    @Autowired
-    private WebTestClient webTestClient;
+    private String createdAssetId;
 
-    @BeforeAll
-    void setUp() {
-        webTestClient = webTestClient.mutate()
-            .responseTimeout(Duration.ofSeconds(10))
-            .build();
+    @Test
+    @DisplayName("Should create and retrieve asset")
+    void createAndRetrieveAsset() {
+        CreateAssetRequest request = new CreateAssetRequest(
+            "Integration Test Server", "SERVER", "HIGH", 2.3522, 48.8566
+        );
+
+        // Create asset
+        createdAssetId = given()
+            .contentType(ContentType.JSON)
+            .body(request)
+            .when()
+            .post("/api/assets")
+            .then()
+            .statusCode(201)
+            .contentType(ContentType.JSON)
+            .body("name", is("Integration Test Server"))
+            .body("type", is("SERVER"))
+            .body("criticality", is("HIGH"))
+            .body("id", notNullValue())
+            .extract()
+            .jsonPath().getString("id");
     }
 
-    @Nested
-    @DisplayName("Basic Integration Tests")
-    class BasicIntegrationTests {
+    @Test
+    @DisplayName("Should get all assets")
+    void getAllAssets() {
+        // First create an asset to ensure database has data
+        CreateAssetRequest request = new CreateAssetRequest(
+            "Test Asset for GetAll", "SERVER", "MEDIUM", 1.0, 1.0
+        );
+        
+        given()
+            .contentType(ContentType.JSON)
+            .body(request)
+            .when()
+            .post("/api/assets")
+            .then()
+            .statusCode(201);
+        
+        // Now get all assets
+        given()
+            .when()
+            .get("/api/assets")
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("$", hasItem(notNullValue()));
+    }
 
-        @Test
-        @DisplayName("Should create and retrieve asset")
-        void createAndRetrieveAsset() {
-            Asset asset = new Asset("Integration Test Server", "SERVER", "HIGH", 2.3522, 48.8566);
+    @Test
+    @DisplayName("Should update asset status")
+    void updateAssetStatus() {
+        // First create an asset
+        CreateAssetRequest request = new CreateAssetRequest(
+            "Status Test Server", "SERVER", "MEDIUM", 1.0, 1.0
+        );
+        
+        String assetId = given()
+            .contentType(ContentType.JSON)
+            .body(request)
+            .when()
+            .post("/api/assets")
+            .then()
+            .statusCode(201)
+            .extract()
+            .jsonPath().getString("id");
 
-            // Create asset
-            webTestClient.post()
-                .uri("/api/assets")
-                .bodyValue(asset)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody()
-                .jsonPath("$.name").isEqualTo("Integration Test Server")
-                .jsonPath("$.type").isEqualTo("SERVER")
-                .jsonPath("$.criticality").isEqualTo("HIGH");
-        }
+        // Update status
+        given()
+            .contentType(ContentType.JSON)
+            .body(Map.of("status", "QUARANTINED"))
+            .when()
+            .patch("/api/assets/{id}/status", assetId)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("status", is("QUARANTINED"));
+    }
 
-        @Test
-        @DisplayName("Should get all assets")
-        void getAllAssets() {
-            webTestClient.get()
-                .uri("/api/assets")
-                .exchange()
-                .expectStatus().isOk()
-                .expectBodyList(Asset.class);
-        }
+    @Test
+    @DisplayName("Should return 404 for non-existent asset")
+    void getNonExistentAsset() {
+        given()
+            .when()
+            .get("/api/assets/non-existent-id")
+            .then()
+            .statusCode(404);
+    }
 
-        @Test
-        @DisplayName("Should update asset status")
-        void updateAssetStatus() {
-            // First create an asset
-            Asset asset = new Asset("Status Test Server", "SERVER", "MEDIUM", 1.0, 1.0);
-            
-            String assetId = webTestClient.post()
-                .uri("/api/assets")
-                .bodyValue(asset)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(Asset.class)
-                .returnResult()
-                .getResponseBody()
-                .getId();
-
-            // Update status
-            webTestClient.patch()
-                .uri("/api/assets/{id}/status", assetId)
-                .bodyValue(Map.of("status", "QUARANTINED"))
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.status").isEqualTo("QUARANTINED");
-        }
-
-        @Test
-        @DisplayName("Should return 404 for non-existent asset")
-        void getNonExistentAsset() {
-            webTestClient.get()
-                .uri("/api/assets/non-existent-id")
-                .exchange()
-                .expectStatus().isNotFound();
-        }
-
-        @Test
-        @DisplayName("Should validate request body")
-        void validateRequestBody() {
-            webTestClient.patch()
-                .uri("/api/assets/test-id/status")
-                .bodyValue(Map.of())
-                .exchange()
-                .expectStatus().isBadRequest();
-        }
+    @Test
+    @DisplayName("Should validate request body")
+    void validateRequestBody() {
+        given()
+            .contentType(ContentType.JSON)
+            .body(Map.of())
+            .when()
+            .patch("/api/assets/test-id/status")
+            .then()
+            .statusCode(400);
     }
 }

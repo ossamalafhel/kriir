@@ -1,9 +1,6 @@
-# COP - Cyber Risk Open Platform (Ransomware Focus) 🛡️
+# KRIIR API - Cyber Risk Platform 🛡️
 
-The world's most advanced open-source ransomware prediction and prevention platform.
-
-**Vision:** Democratize enterprise-grade ransomware defense through open-source AI  
-**Mission:** Predict. Prevent. Protect. From Ransomware.
+Open-source ransomware prediction and prevention platform API.
 
 ---
 
@@ -22,10 +19,10 @@ Launch PostgreSQL with PostGIS extension:
 
 ```bash
 cd api
-docker run --name cop-db -p 5432:5432 \
-  -e "POSTGRES_USER=cop" \
-  -e "POSTGRES_PASSWORD=cop" \
-  -e "POSTGRES_DB=cop_db" \
+docker run --name kriir-db -p 5432:5432 \
+  -e "POSTGRES_USER=kriir" \
+  -e "POSTGRES_PASSWORD=kriir" \
+  -e "POSTGRES_DB=kriir_db" \
   -d postgis/postgis:15-3.4
 ```
 
@@ -35,8 +32,12 @@ docker run --name cop-db -p 5432:5432 \
 # Build the application
 mvn clean install
 
-# Run the API
-mvn spring-boot:run
+# Run the API in development mode
+mvn quarkus:dev
+
+# Or build and run the JAR
+mvn clean package
+java -jar target/quarkus-app/quarkus-run.jar
 ```
 
 ### Access Points
@@ -50,14 +51,14 @@ mvn spring-boot:run
 ## 🎯 Core Features
 
 ### Ransomware Prediction Engine
-- **92%+ accuracy** for 48-72h attack predictions
-- Victim likelihood scoring and attack timeline prediction  
-- Real-time threat landscape analysis
+- Predictive models for 48-72 hour attack forecasting
+- Risk scoring based on organizational attributes and threat landscape
+- Continuous analysis of threat indicators and patterns
 
 ### Kill-Chain Monitoring
-- **Real-time detection** of ransomware attack progression
-- Automated kill-chain interruption at critical stages
-- <5 minute response time for high-confidence detections
+- Detection of ransomware attack progression through multiple stages
+- Automated response mechanisms for attack interruption
+- Event-driven architecture for rapid incident response
 
 ### Automated Defense Systems
 - **Emergency backup triggering** before encryption begins
@@ -74,10 +75,10 @@ mvn spring-boot:run
 ## 🏗️ Architecture
 
 ### Technology Stack
-- **Backend:** Spring Boot 3.3.5 with WebFlux (Reactive)
+- **Backend:** Quarkus 3.15.1 with Reactive Programming
 - **Database:** PostgreSQL 15 + PostGIS 3.4 for geospatial data
-- **Data Access:** R2DBC for reactive database operations
-- **AI/ML:** Built-in prediction models with causal inference
+- **Data Access:** Hibernate Reactive with Panache for reactive database operations
+- **ML Models:** Prediction models with causal inference algorithms
 - **Real-time:** Server-Sent Events (SSE) for live updates
 - **API:** RESTful APIs + GraphQL + WebSocket support
 
@@ -85,7 +86,7 @@ mvn spring-boot:run
 
 ```mermaid
 graph TD
-    A[🎯 Ransomware Prediction Engine] --> F[COP Platform Architecture]
+    A[🎯 Ransomware Prediction Engine] --> F[KRIIR Platform Architecture]
     B[⚡ Real-time Kill-Chain Monitor] --> F
     C[🛡️ Automated Defense Orchestrator] --> F
     D[🔍 Threat Intelligence Processor] --> F
@@ -189,7 +190,7 @@ open target/site/jacoco/index.html
 ### Docker Deployment
 ```bash
 # Build container
-docker build -t cop-platform .
+docker build -t kriir-platform .
 
 # Run with compose
 docker-compose up -d
@@ -201,7 +202,7 @@ docker-compose up -d
 kubectl apply -f k8s/
 
 # Check deployment
-kubectl get pods -n cop-platform
+kubectl get pods -n kriir-platform
 ```
 
 ### Production Configuration
@@ -215,11 +216,11 @@ kubectl get pods -n cop-platform
 ## 📈 Monitoring & Metrics
 
 ### Key Performance Indicators
-- **Ransomware Prediction Accuracy:** 92%+ (48h window)
-- **False Positive Rate:** <2%
-- **Response Time:** <5 minutes
-- **Attacks Prevented:** 1000+/month target
-- **Economic Impact:** $50M+ damages prevented annually
+- **Prediction Window:** 48-72 hours ahead
+- **Model Performance:** Continuously evaluated and improved
+- **Response Latency:** Optimized for sub-minute detection
+- **System Throughput:** Designed for high-volume processing
+- **Data Processing:** Real-time streaming architecture
 
 ### Operational Metrics
 - API response times (<500ms 95th percentile)
@@ -231,7 +232,7 @@ kubectl get pods -n cop-platform
 
 ## 🤝 Contributing
 
-We welcome contributions to the COP platform! See our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions to the KRIIR platform!
 
 ### Development Setup
 1. Fork the repository
@@ -250,32 +251,29 @@ We welcome contributions to the COP platform! See our [Contributing Guidelines](
 
 ## 📚 Documentation
 
-- **[Product Specification](PRODUCT_SPECIFICATION.md)** - Comprehensive platform documentation
 - **[API Reference](http://localhost:8080/swagger-ui.html)** - Interactive API documentation
-- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
-- **[Security Policy](SECURITY.md)** - Security guidelines and reporting
 
 ---
 
 ## 🎯 Roadmap
 
-### Phase 1: Core Ransomware Defense (Months 1-6)
-- ✅ Ransomware prediction models (90%+ accuracy)
-- ✅ Kill-chain monitoring and detection
-- ✅ Automated response systems
-- ✅ Real-time threat intelligence
+### Phase 1: Core Platform (Completed - March 2025)
+- ✅ Ransomware prediction models implementation
+- ✅ Kill-chain monitoring and detection systems
+- ✅ Automated response framework
+- ✅ Real-time data processing pipeline
 
-### Phase 2: Advanced Intelligence (Months 7-12)
-- 🔄 Ransomware group attribution engine
-- 🔄 Economic impact modeling
-- 🔄 Insurance integration APIs
-- 🔄 Mobile application support
+### Phase 2: Enhanced Capabilities (April - September 2025)
+- 🔄 Attribution and analysis engines
+- 🔄 Risk modeling components
+- 🔄 External system integration APIs
+- 🔄 Cross-platform client support
 
-### Phase 3: Global Platform (Months 13+)
-- 📋 Federated learning capabilities
-- 📋 Quantum-resistant algorithms
-- 📋 Global threat intelligence network
-- 📋 Enterprise support services
+### Phase 3: Advanced Features (October 2025+)
+- 📋 Distributed learning architectures
+- 📋 Enhanced cryptographic implementations
+- 📋 Federated intelligence sharing
+- 📋 Extended platform capabilities
 
 ---
 
@@ -283,28 +281,28 @@ We welcome contributions to the COP platform! See our [Contributing Guidelines](
 
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
 
-### Commercial Use
-- ✅ Commercial use permitted
-- ✅ Modification allowed
-- ✅ Distribution allowed
-- ✅ Patent grant included
+### Usage Rights
+- Open source under Apache License 2.0
+- Modification and distribution permitted
+- Patent rights included as per Apache 2.0 terms
+- Attribution required
 
 ---
 
-## 🏆 Recognition
+## 📝 Author
 
-**Built by Ossama Lafhel**  
+**Developed by Ossama Lafhel**  
 📧 [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)
 
-### Powered by Advanced Technologies
-- 🤖 Predictive AI and Machine Learning
-- 🌍 Geospatial Intelligence (PostGIS)
-- ⚡ Reactive Programming (Spring WebFlux)
-- 🔄 Real-time Event Processing
-- 🛡️ Security-First Architecture
+### Technical Foundation
+- Machine Learning prediction models
+- Geospatial data processing with PostGIS
+- Reactive programming with Quarkus
+- Event-driven architecture
+- Security-focused design patterns
 
 ---
 
-*"Transforming cybersecurity from reactive to predictive - one prevented ransomware attack at a time."*
+*Open-source ransomware prediction and prevention platform.*
 
-**⭐ Star this repository if COP helps protect your organization from ransomware threats!**
+**⭐ Star this repository if you find this project useful!**

@@ -3,27 +3,27 @@ package com.kriir.platform.mapper;
 import com.kriir.platform.dto.SecurityIncidentDto;
 import com.kriir.platform.dto.CreateSecurityIncidentRequest;
 import com.kriir.platform.model.SecurityIncident;
-import org.springframework.stereotype.Component;
+import jakarta.enterprise.context.ApplicationScoped;
 
-@Component
+@ApplicationScoped
 public class SecurityIncidentMapper {
     
     public SecurityIncidentDto toDto(SecurityIncident incident) {
         if (incident == null) return null;
         
         return new SecurityIncidentDto(
-            incident.getId(),
-            incident.getTitle(),
-            incident.getType(),
-            incident.getSeverity(),
-            incident.getStatus(),
-            incident.getX(),
-            incident.getY(),
-            incident.getDescription(),
-            incident.getAffectedAssetId(),
-            incident.getDetectedAt(),
-            incident.getResolvedAt(),
-            incident.getAssignedTo()
+            incident.id,
+            incident.title,
+            incident.type,
+            incident.severity,
+            incident.status,
+            incident.x,
+            incident.y,
+            incident.description,
+            incident.affectedAssetId,
+            incident.detectedAt,
+            incident.resolvedAt,
+            incident.assignedTo
         );
     }
     
@@ -35,10 +35,13 @@ public class SecurityIncidentMapper {
             request.type(),
             request.severity(),
             request.x(),
-            request.y()
+            request.y(),
+            request.description()
         );
-        incident.setDescription(request.description());
-        incident.setAffectedAssetId(request.affectedAssetId());
+        
+        if (request.affectedAssetId() != null) {
+            incident.affectedAssetId = request.affectedAssetId();
+        }
         
         return incident;
     }
@@ -46,12 +49,12 @@ public class SecurityIncidentMapper {
     public void updateEntity(SecurityIncident incident, CreateSecurityIncidentRequest request) {
         if (incident == null || request == null) return;
         
-        incident.setTitle(request.title());
-        incident.setType(request.type());
-        incident.setSeverity(request.severity());
-        incident.setX(request.x());
-        incident.setY(request.y());
-        incident.setDescription(request.description());
-        incident.setAffectedAssetId(request.affectedAssetId());
+        incident.title = request.title();
+        incident.type = request.type();
+        incident.severity = request.severity();
+        incident.x = request.x();
+        incident.y = request.y();
+        incident.description = request.description();
+        incident.affectedAssetId = request.affectedAssetId();
     }
 }

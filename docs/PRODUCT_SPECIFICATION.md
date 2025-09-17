@@ -1,11 +1,11 @@
-# KRIIR - Cyber Risk Open Platform (Ransomware Focus) v2.0
+# COP - Cyber Risk Open Platform (Ransomware Focus) v2.0
 
 ## Executive Summary
 
-**Product Name:** KRIIR - Cyber Risk Open Platform (Ransomware Focused)  
-**Vision:** The world's most advanced ransomware prediction and prevention platform  
-**Mission:** Democratize enterprise-grade ransomware defense through open-source AI  
-**Tagline:** "Predict. Prevent. Protect. From Ransomware."
+**Product Name:** COP - Cyber Risk Open Platform (Ransomware Focused)  
+**Vision:** An advanced open-source ransomware prediction and prevention platform  
+**Mission:** Provide enterprise-grade ransomware defense through open-source AI  
+**Purpose:** Enable organizations to predict, prevent, and protect against ransomware attacks
 
 ---
 
@@ -13,15 +13,15 @@
 
 ### 1.1 Product Definition
 
-KRIIR v2.0 is specifically engineered to combat the ransomware epidemic through predictive AI, real-time monitoring, and automated prevention systems. Unlike general threat intelligence platforms, KRIIR focuses exclusively on ransomware attack patterns, victim profiling, and attack path prediction.
+COP v2.0 is specifically engineered to combat ransomware through predictive AI, real-time monitoring, and automated prevention systems. Unlike general threat intelligence platforms, COP focuses exclusively on ransomware attack patterns, victim profiling, and attack path prediction.
 
-### 1.2 Market Context
+### 1.2 Technical Context
 
-- **Ransomware Damage:** $20B+ annually in global damages
-- **Attack Frequency:** Every 11 seconds globally
-- **Success Rate:** 70%+ of attacks achieve initial compromise
-- **Average Downtime:** 23 days per successful attack
-- **Recovery Cost:** $4.54M average cost per incident
+- **Attack Frequency:** Ransomware attacks occur frequently across organizations
+- **Success Rate:** Many attacks achieve initial compromise
+- **Downtime Impact:** Successful attacks can cause extended downtime
+- **Recovery Challenges:** Recovery from ransomware can be complex and time-consuming
+- **Defense Need:** Proactive defense systems are critical for prevention
 
 ### 1.3 Unique Value Propositions
 
@@ -31,11 +31,11 @@ KRIIR v2.0 is specifically engineered to combat the ransomware epidemic through 
 - Automated kill-chain interruption
 - Real-time attack progression monitoring
 
-**For Insurance Companies:**
-- Precise ransomware risk scoring for underwriting
-- Predictive loss modeling for ransomware claims
-- Real-time portfolio exposure monitoring
-- Claims validation through attack reconstruction
+**For Risk Assessment:**
+- Precise ransomware risk scoring
+- Predictive threat modeling
+- Real-time exposure monitoring
+- Attack pattern analysis
 
 **For Enterprises:**
 - Proactive ransomware defense posture
@@ -109,12 +109,12 @@ graph TD
     style M fill:#ffebee,stroke:#d32f2f,stroke-width:3px
     style N fill:#ff1744,color:#ffffff,stroke:#b71c1c,stroke-width:3px
     
-    A -.->|"🛡️ KRIIR Detection"| O[Kill-Chain Monitor]
-    B -.->|"🛡️ KRIIR Detection"| O
-    C -.->|"🛡️ KRIIR Detection"| O
-    G -.->|"🛡️ KRIIR Detection"| O
-    I -.->|"🛡️ KRIIR Detection"| O
-    L -.->|"🛡️ KRIIR Detection"| O
+    A -.->|"🛡️ COP Detection"| O[Kill-Chain Monitor]
+    B -.->|"🛡️ COP Detection"| O
+    C -.->|"🛡️ COP Detection"| O
+    G -.->|"🛡️ COP Detection"| O
+    I -.->|"🛡️ COP Detection"| O
+    L -.->|"🛡️ COP Detection"| O
     
     O --> P[🚨 Automated Response]
     P --> Q[💾 Emergency Backup]
@@ -921,19 +921,17 @@ phase_2_advanced_intelligence:
 
 KRIIR v2.0 represents a paradigm shift in ransomware defense - from reactive recovery to predictive prevention. By focusing exclusively on the ransomware threat landscape, KRIIR delivers unparalleled accuracy in attack prediction and automated defense capabilities.
 
-**Revolutionary Capabilities:**
-- **92%+ Ransomware Prediction Accuracy** (48-72h advance warning)
-- **Real-time Kill-Chain Interruption** (<5 minute response)
+**Key Capabilities:**
+- **High Ransomware Prediction Accuracy** (48-72h advance warning)
+- **Real-time Kill-Chain Interruption** (rapid response)
 - **Automated Defense Orchestration** (backup, isolation, alerting)
-- **Economic Impact Prevention** ($50M+ damages prevented annually)
+- **Impact Reduction** (helps prevent damage from attacks)
 
 **Success Vision:**
-KRIIR will become the global standard for ransomware defense, preventing thousands of attacks monthly and saving billions in economic damages while maintaining full transparency as an open-source solution.
+COP aims to provide effective ransomware defense capabilities, helping prevent attacks and reduce damages while maintaining full transparency as an open-source solution.
 
 ---
 
-**Built by Ossama Lafhel - [ossama.lafhel@kanpredict.com](mailto:ossama.lafhel@kanpredict.com)**
+## Contributors
 
-*🤖 Generated with [Claude Code](https://claude.ai/code)*
-
-*Co-Authored-By: Claude <noreply@anthropic.com>*
+This is an open-source project maintained by the community. For contributions, please see CONTRIBUTING.md.
